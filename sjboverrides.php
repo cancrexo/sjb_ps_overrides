@@ -39,16 +39,12 @@ class sjboverrides extends Module
 
 
    /*
-   * Debug de clase
-   * Uso:   self::debug('error aqui');
-   */
-   static function debug($msg = '', $error_level =2 ){
-      if (static::$debugEnabled && $msg != '' {
-         \PrestaShopLogger::addLog( $msg, $error_level);
-         // $hora =  date("H:i:s.u");
-         // if($use_microtime) $hora .=  " (" . microtime() . ")\r\n";
-         // file_put_contents( self::$LOGFILE, $hora .' ' . $msg . "\r\n ", FILE_APPEND );
-      }
+    * Debug de clase
+    * Uso:   self::debug('error aqui')
+    */
+   static function debug($msg = '', $level = 1){
+      if(!static::$debugEnabled)return;
+      \PrestaShopLogger::addLog($msg, (int)$level);
    }
 
    /**
