@@ -234,8 +234,8 @@ public function getFormDebug(){
                      'label' => $this->l('Debug Mode'),
                      'desc' => sprintf(
                            '%1$s <em style="color:#c00">%2$s</em>',
-                           $this->l('If active, module  will keep a text log in'),
-                           _PS_MODULE_DIR_ .  basename(__FILE__,'.php') . '/logs/'
+                           $this->l('If active, module  will log messages to PS registry'),
+                           'PS registry'
 
                      ),
                      'name' => 'debug_enabled',
