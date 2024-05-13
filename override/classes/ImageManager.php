@@ -23,9 +23,9 @@ class ImageManager extends ImageManagerCore
    **/
    static function debug($msg = '', $level =1){
       $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
-      if($SJBOVERRIDES && $SJBOVERRIDES::$debugEnabled)
+      if($SJBOVERRIDES && $SJBOVERRIDES::$debugEnabled && $msg !== '')
          $SJBOVERRIDES::debug($msg, $level);
-         
+
    }
 
 /**
