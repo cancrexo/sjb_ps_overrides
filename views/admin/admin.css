@@ -1,0 +1,82 @@
+
+:root{
+   ---sjb-first-color: #f90;
+   ---sjb-second-color: #fc0;
+
+
+}
+.clearfix{
+	width:100%;
+	clear:both;
+}
+
+
+select.sjboverrides.fixed-width-xl{
+   width:100% !important;
+}
+
+.grupo-reinstalloverrides{
+   padding:5px;
+
+}
+.cancrexolist{
+   position: relative;
+   display: block;
+   list-style-position: inside;
+   list-style-type: none;
+   margin: 0 0 0 8%;
+   width: 90%;
+   padding: 0;
+   counter-reset: li-counter;
+}
+
+.cancrexolist li{
+   margin-bottom:1.5em;
+   line-height:1.2em;
+}
+
+.cancrexolist > li {
+    position: relative;
+    font-size: 15px;
+    text-align: left;
+    width: 95%;
+    text-align: justify;
+    position: relative;
+    margin-bottom: 2em;
+    padding-left: .6em;
+    min-height: 3em;
+    border-left: 2px solid var(---sjb-first-color);
+    color: #000;
+}
+
+
+.cancrexolist > li:before {
+    position: absolute;
+    top: 0;
+    left: -1.7em;
+    width: 1.5em;
+    font-size: 2.2em;
+    line-height: 1;
+    font-weight: 700;
+    text-align: right;
+    color: var(---sjb-first-color);;
+    content: counter(li-counter);
+    counter-increment: li-counter
+}
+
+
+.cancrexolist > ul {
+    padding: 0 5%;
+    width: 90%;
+    position: relative;
+    display: block;
+    margin: 1em 0;
+    list-style-type: disc
+}
+
+.cancrexolist > ul li {
+    line-height: 1.2em;
+    margin: 0 0 .5em
+}
+
+

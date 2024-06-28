@@ -1,12 +1,21 @@
 <?php
 /**
+ * NOTICE OF LICENSE
+ *
+ * This file is licenced under the Software License Agreement.
+ * With the purchase or the installation of the software in your application
+ * you accept the licence agreement.
+ *
+ * You must not modify, adapt or create derivative works of this source code
+ *
  *  Override para permitir imaxes png transparentes
  *  Preferences -> Images -> Engadiur e poñerlle de nombre whatever_sjb (engadir '_sjb' ao final do name)
- *  @author Cancrexo
- *  @copyright 2018 SJB Dixital
- *  @license http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *
+ *  @author Cancrexo. cancrexo@gmail.com
+ *  @copyright 2024 SJB Dixital
+ *  @license http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
+
 
 class ImageManager extends ImageManagerCore
 {
@@ -17,11 +26,7 @@ class ImageManager extends ImageManagerCore
    const SJB_CROP_JCROP    = 4; // Recorte jCrop    debes recibir as 4 coordenadas (X1,Y1), (X2,Y2)
 
 
-   /*
-   * Debug de clase
-   * Uso:   static::debug('error aqui');
-   **/
-   static function debug($msg = '', $level =1){
+   public static function debug($msg = '', $level =1){
       $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
       if($SJBOVERRIDES && $SJBOVERRIDES::$debugEnabled && $msg !== '')
          $SJBOVERRIDES::debug($msg, $level);
@@ -43,9 +48,20 @@ class ImageManager extends ImageManagerCore
    public static function resize( $src_file, $dst_file, $dst_width = null, $dst_height = null, $file_type = 'jpg', $force_type = false,
          &$error = 0, &$tgt_width = null, &$tgt_height = null, $quality = 5, &$src_width = null, &$src_height = null){
 
+      if (!Module::isEnabled('sjboverrides') || !($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))
+         ||  !($override_enabled = (bool) Configuration::get($SJBOVERRIDES::PREFIX.'IMAGEMANAGER'))
+      ) {
+         return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
+      }
+
+
+      $SJBOVERRIDES::debug(__method__ );
+
+
 
       if (!file_exists($src_file))
                return false;
+
 
       // Fotos coa extension chula
       if (strpos($dst_file, '_sjb')!== FALSE){
