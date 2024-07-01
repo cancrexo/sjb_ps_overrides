@@ -26,14 +26,8 @@ class ImageManager extends ImageManagerCore
    const SJB_CROP_JCROP    = 4; // Recorte jCrop    debes recibir as 4 coordenadas (X1,Y1), (X2,Y2)
 
 
-   public static function debug($msg = '', $level =1){
-      $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
-      if($SJBOVERRIDES && $SJBOVERRIDES::$debugEnabled && $msg !== '')
-         $SJBOVERRIDES::debug($msg, $level);
 
-   }
-
-/**
+ /**
    * Resize, cut and optimize image
    *
    *
@@ -60,12 +54,11 @@ class ImageManager extends ImageManagerCore
 
 
       if (!file_exists($src_file))
-               return false;
+         return false;
 
 
       // Fotos coa extension chula
       if (strpos($dst_file, '_sjb')!== FALSE){
-         //return self::sjb_resize( $src_file, $dst_file, $dst_width, $dst_height, $file_type,  $force_type);
          return self::sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type);
       }
 
@@ -211,29 +204,30 @@ class ImageManager extends ImageManagerCore
       }
       return parent::isRealImage($filename, $file_mime_type, $mime_type_list);
    }
-/*
-      Crea unha copia da imaxe cargada no servidor para traballar con ela
-      Podemos facer 4 cousas con ela
 
-      - SJB_CROP_HARD (0) - Recorte da foto das dimensións indicadas, a pelo e sin redimension (hard-crop)
-               Colle a foto orixen e saca unha porcion dela das dimensións indicadas.  TODO -->podes indicar por onde facer o recorte
-               si especificas o valor de $PUNTO_ORIGEN  (0 top-left, 1-top-center, ..., 8 bottom-right)  De momento top left
+/*    
+   Crea unha copia da imaxe cargada no servidor para traballar con ela
+   Podemos facer 4 cousas con ela
+
+   - SJB_CROP_HARD (0) - Recorte da foto das dimensións indicadas, a pelo e sin redimension (hard-crop)
+            Colle a foto orixen e saca unha porcion dela das dimensións indicadas.  TODO -->podes indicar por onde facer o recorte
+            si especificas o valor de $PUNTO_ORIGEN  (0 top-left, 1-top-center, ..., 8 bottom-right)  De momento top left
 
    - SJB_CROP_AXUSTAR (1) - Redimensionar ata o límite e cortar o que sobra -->PODES INDICAR POR ONDE FACERO RECORTE
                si especificas o valor de $PUNTO_ORIGEN  (0 top-left, 1-top-center, ..., 8 bottom-right)
 
-   - SJB_CROP_FIT (2) - Redimensionar hasta que entre no "marco" (poden quedar ocos!!!) -- Centrarase no marco destino. Si se trata dun PNG pods definir o fondo transparente. Resto de caso porase un color blanco de fondo (TODO: definr ese color )
+   - SJB_CROP_FIT (2) - Redimensionar hasta que entre no "marco" (poden quedar ocos!!!) -- Centrarase no marco destino. Si se trata dun PNG pods definir o fondo transparente. Resto de caso porase un color blanco de fondo (TODO: defini ese color )
 
    - SJB_CROP_DISTORT (3) - Redimensionar completamente sin proporcionalidade!! -->distoriona
 
-      - SJB_CROP_JCROP (4) - Recorte jCrop debes recibir as 4 coordenadas (X1,Y1), (X2,Y2)
-
-*******************************************************************************************************************************/
+   - SJB_CROP_JCROP (4) - Recorte jCrop debes recibir as 4 coordenadas (X1,Y1), (X2,Y2)
+*/
 
 public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_height, $file_type,  $force_type){
 
-      //self::debug('src_file: ' . $src_file);
-      //self::debug('dst_file: ' . $dst_file);
+      //  $SJBOVERRIDES::debug(__method__ );('src_file: ' . $src_file);
+      //  $SJBOVERRIDES::debug(__method__ );('dst_file: ' . $dst_file);
+      $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
 
       list($src_width, $src_height, $type) = getimagesize($src_file);
 
@@ -276,7 +270,7 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
                //if(!@imagecopy ($dest_image, $src_image, 0, 0, 0, 0, $dst_width, $dst_height)){
 
                if(!imagecopyresampled ($dest_image, $src_image, 0, 0, 0, 0, $dst_width, $dst_height, $dst_width, $dst_height)){
-                  self::debug('Error de imagecopy preparando Imagen, caso 0');
+                   $SJBOVERRIDES::debug('Error de imagecopy preparando Imagen, caso 0');
                   return false;
                }
          break;
@@ -308,14 +302,14 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
                $src_img_redim = @imagecreatetruecolor($anchoR , $altoR); // Crea Imaxe temporal valdeira coas dimensións finales
 
                if(!$src_img_redim){
-                  self::debug('Error de imagecreatetruecolor preparando src_img_redim, caso 1');
+                  $SJBOVERRIDES::debug('Error de imagecreatetruecolor preparando src_img_redim, caso 1');
                   return false;
                }
 
                // Fago unha copia redimensionada proporcinalmente da imaxe orixinal e almacenoa en $src_img_redim.
                // (Vou recortar despois o que sobre)
                if(!@imagecopyresampled ($src_img_redim, $src_image, 0, 0, 0, 0, $anchoR, $altoR, $src_w, $src_h)){
-                  self::debug('Error de imagecopyresampled preparando Imagen, caso 1a');
+                  $SJBOVERRIDES::debug('Error de imagecopyresampled preparando Imagen, caso 1a');
                   return false;
                }
 
@@ -324,7 +318,7 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
                // Creo obxecto imaxe para meter nel o recorte
                $recorte = @imagecreatetruecolor($dst_width, $dst_height);
                if(!$recorte){
-                  self::debug('Error de imagecreatetruecolor preparando recorte, caso 1b');
+                  $SJBOVERRIDES::debug('Error de imagecreatetruecolor preparando recorte, caso 1b');
                   return false;
                }
 
@@ -360,7 +354,7 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
                $srcY = $posY[$POS_RECORTE];
 
                if(!@imagecopy ($recorte, $src_img_redim, 0, 0, $srcX, $srcY, $dst_width, $dst_height)){
-                  self::debug('Error de imagecopy posicionando o recadro de corte, caso 1');
+                  $SJBOVERRIDES::debug('Error de imagecopy posicionando o recadro de corte, caso 1');
                   return false;
                }
                $dest_image = $recorte; // imaxe a gardar
@@ -393,15 +387,15 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
 
                }
 
-               self::debug('Dimensións Finales (Caso 2):' . $dst_width .' X ' . $dst_height);
+               $SJBOVERRIDES::debug('Dimensións Finales (Caso 2):' . $dst_width .' X ' . $dst_height);
                $dest_image = @imagecreatetruecolor($dst_width , $dst_height ); // Crea Imaxe temporal valdeira
 
                if(!$dest_image){
-                  self::debug('Error de imagecreatetruecolor , caso 2');
+                  $SJBOVERRIDES::debug('Error de imagecreatetruecolor , caso 2');
                   return false;
                }
                if(!@imagecopyresampled ($dest_image, $src_image, 0, 0, 0, 0, $dst_width, $dst_height , $src_w, $src_h)){
-                  self::debug('Error de imagecopyresized , caso 2');
+                  $SJBOVERRIDES::debug('Error de imagecopyresized , caso 2');
                   return false;
                }
 
@@ -422,7 +416,7 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
          //***************************************************************************************************
 
                if(!@imagecopyresampled ($dest_image, $src_image, 0, 0, 0, 0, $dst_width, $dst_height, $src_w, $src_h)){
-                  self::debug('Error de imagecopyresized preparando Imagen, caso 3');
+                  $SJBOVERRIDES::debug('Error de imagecopyresized preparando Imagen, caso 3');
                   return false;
                }
 
@@ -439,10 +433,10 @@ public static function sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_he
                $anchoRecorte = (int)$_POST['w'];
                $altoRecorte = (int)$_POST['h'];
 
-               self::debug('Dimensións imaxe JCrop:' . $anchoRecorte .' X ' . $altoRecorte);
+               $SJBOVERRIDES::debug('Dimensións imaxe JCrop:' . $anchoRecorte .' X ' . $altoRecorte);
 
                if(!@imagecopyresampled ($dest_image, $src_image, 0, 0, $origX, $origY, $dst_width, $dst_height, $anchoRecorte, $altoRecorte)){
-                  self::debug('"Error de imagecopyresized preparando Imagen, caso 4');
+                  $SJBOVERRIDES::debug('"Error de imagecopyresized preparando Imagen, caso 4');
                   return false;
                }
          break;
