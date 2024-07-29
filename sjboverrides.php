@@ -31,8 +31,11 @@ class sjboverrides extends Module implements WidgetInterface {
         'actionOrderStatusPostUpdate'
     );
 
-   public $config = array();
-   public $_loadedconfig;
+   public   $config = array(),
+            $_loadedconfig,
+            $error, $valid, $path,
+            $list_order_state;
+
    protected $_html = '';
     // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
 
@@ -70,7 +73,7 @@ class sjboverrides extends Module implements WidgetInterface {
       $this->valid = false;
       $this->ps_versions_compliancy = array('min' => '1.6', 'max' =>_PS_VERSION_);
       $this->path = $this->_path; // Protected polo visto, logo uso unha public para os templates!
-      static::$debugEnabled = (bool) Configuration::get(self::PREFIX.'DEBUG_ENABLED');
+      static::$debugEnabled = (bool)\Configuration::get(self::PREFIX.'DEBUG_ENABLED');
    }
 
    public function install()
@@ -103,11 +106,11 @@ class sjboverrides extends Module implements WidgetInterface {
          $this->unregisterHook($hook);
       }
 
-      Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
-      Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
-      Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
-      Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
-      Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
+      \Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
+      \Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
+      \Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
+      \Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
+      \Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
 
       return true;
    }
@@ -120,11 +123,11 @@ class sjboverrides extends Module implements WidgetInterface {
    protected function defaultValues(){
 
 
-      Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', FALSE );
-      Configuration::updateValue(self::PREFIX.'ORDERHISTORY', FALSE );
-      Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
-      Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
-      Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
+      \Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', FALSE );
+      \Configuration::updateValue(self::PREFIX.'ORDERHISTORY', FALSE );
+      \Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
+      \Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
+      \Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
       return true;
    }
 
@@ -143,28 +146,28 @@ class sjboverrides extends Module implements WidgetInterface {
 
    public function postProcess()
    {
-      if (Tools::isSubmit('sjbSubmitConfig') ) {
+      if (\Tools::isSubmit('sjbSubmitConfig') ) {
 
          // static::debug(__METHOD__ . "\r\n" . var_export(Tools::getAllValues(), true));
 
          $formvalues = array(); // array with sanitized values
          // arrays are not assigned by reference!
 
-         Configuration::updateGlobalValue(self::PREFIX .'IMAGEMANAGER', (int)Tools::getValue('image_manager'));
-         Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORY', (int)Tools::getValue('order_history'));
-         Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORYSTATE', (int)Tools::getValue('id_estado_facturado'));
-         Configuration::updateGlobalValue(self::PREFIX .'DEBUG_ENABLED', (int)Tools::getValue('debug_enabled'));
-         Configuration::updateGlobalValue(self::PREFIX .'REMOVE_DATA',(int)Tools::getValue('remove_data'));
+         \Configuration::updateGlobalValue(self::PREFIX .'IMAGEMANAGER', (int)Tools::getValue('image_manager'));
+         \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORY', (int)Tools::getValue('order_history'));
+         \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORYSTATE', (int)Tools::getValue('id_estado_facturado'));
+         \Configuration::updateGlobalValue(self::PREFIX .'DEBUG_ENABLED', (int)Tools::getValue('debug_enabled'));
+         \Configuration::updateGlobalValue(self::PREFIX .'REMOVE_DATA',(int)Tools::getValue('remove_data'));
 
 
 
-         if((int)Tools::getValue('module_override_reinstall')){
+         if((int)\Tools::getValue('module_override_reinstall')){
             $overrides = $this->uninstallOverrides() &&  $this->installOverrides();
             // $this->confirmations[]= sprintf('%1$s<br>',  $this->l('Overrides resintalados OK'));
             $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Overrides resintalados OK', [], 'Modules.Sjboverrides.Admin')));
          }
 
-         if((int)Tools::getValue('module_cache_clear')){
+         if((int)\Tools::getValue('module_cache_clear')){
             $this->vaciaCache();
             //$this->_html .=sprintf('%1$s<br>',  $this->l('Overrides resintalados OK'));
             $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
@@ -182,17 +185,17 @@ class sjboverrides extends Module implements WidgetInterface {
    */
    public function renderForm(){
 
-      $helper = new HelperForm();
+      $helper = new \HelperForm();
       $helper->module = $this;
       $helper->show_toolbar = true;
       $helper->table = $this->table; // PS_CONFIGURATION!!
-      $lang = new Language((int) Configuration::get('PS_LANG_DEFAULT'));
+      $lang = new \Language((int) Configuration::get('PS_LANG_DEFAULT'));
       $helper->default_form_language = $lang->id; //$this->context->anguage->id
       $helper->allow_employee_form_lang =
-      Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+      \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
 
       // Estad pedidos
-		$order_state = OrderStateCore::getOrderStates( $this->context->language->id);
+		$order_state = \OrderStateCore::getOrderStates( $this->context->language->id);
 
 		$this->list_order_state = array();
 
@@ -203,19 +206,19 @@ class sjboverrides extends Module implements WidgetInterface {
 
 
 
-      $datos2Form['image_manager'] = (bool) Configuration::get(self::PREFIX.'IMAGEMANAGER');
-      $datos2Form['order_history'] = (bool) Configuration::get(self::PREFIX.'ORDERHISTORY');
+      $datos2Form['image_manager'] = (bool) \Configuration::get(self::PREFIX.'IMAGEMANAGER');
+      $datos2Form['order_history'] = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
       $datos2Form['id_estado_facturado'] = (int) Configuration::get(self::PREFIX.'ORDERHISTORYSTATE');
       $datos2Form['module_override_reinstall']= false;
       $datos2Form['module_cache_clear']= false;
-      $datos2Form['debug_enabled'] = (bool) Configuration::get(self::PREFIX.'DEBUG_ENABLED');
-      $datos2Form['remove_data'] = (bool) Configuration::get(self::PREFIX.'REMOVE_DATA');
+      $datos2Form['debug_enabled'] = (bool) \Configuration::get(self::PREFIX.'DEBUG_ENABLED');
+      $datos2Form['remove_data'] = (bool) \Configuration::get(self::PREFIX.'REMOVE_DATA');
       $datos2Form['issjbsubmit'] = 0; // Cambiase por js
 
       $helper->identifier = $this->identifier; // indice de this->table, neste caso  id_configuration
       $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
       . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-      $helper->token = Tools::getAdminTokenLite('AdminModules');
+      $helper->token = \Tools::getAdminTokenLite('AdminModules');
 
       $helper->tpl_vars = array(
          'fields_value' => $datos2Form, //$this->config,
@@ -235,10 +238,10 @@ class sjboverrides extends Module implements WidgetInterface {
 
    public function vaciaCache(){
       static::debug('Borrando cache prestashop', 2);
-      Tools::clearSmartyCache();
-      Tools::clearXMLCache();
-      Media::clearCache();
-      Tools::generateIndex();
+      \Tools::clearSmartyCache();
+      \Tools::clearXMLCache();
+      \Media::clearCache();
+      \Tools::generateIndex();
       static::debug('cache prestashop borrado', 2);
    }
 
@@ -310,7 +313,7 @@ class sjboverrides extends Module implements WidgetInterface {
                      ),
                   ),
                   array(
-                        'form_group_class'=>'grupo-estadofacturado ' . ((bool)Configuration::get(self::PREFIX.'ORDERHISTORY') ? '' : 'hidden'),
+                        'form_group_class'=>'grupo-estadofacturado ' . ((bool)\Configuration::get(self::PREFIX.'ORDERHISTORY') ? '' : 'hidden'),
                         'type'     => 'select', // This is a <select> tag.
                         'label'    => $this->l('Estado facturado'), // The <label> for this <select> tag.
                         'desc'   => sprintf(
@@ -533,7 +536,7 @@ class sjboverrides extends Module implements WidgetInterface {
 
    public function hookActionAdminControllerSetMedia($params)
    {
-      if (Tools::getValue('controller') == 'AdminModules' && Tools::getValue('configure') == $this->name) {
+      if (\Tools::getValue('controller') == 'AdminModules' && \Tools::getValue('configure') == $this->name) {
          $this->context->controller->addCSS('//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css', 'all');
          $this->context->controller->addCSS($this->_path . 'views/admin/admin.css', 'all');
          // $this->context->controller->addJS('//code.jquery.com/ui/1.11.4/jquery-ui.js', 'all');
@@ -555,13 +558,13 @@ class sjboverrides extends Module implements WidgetInterface {
    {
       static::debug(__method__);
 
-      $ORDER_HISTORY = (bool) Configuration::get(self::PREFIX.'ORDERHISTORY');
+      $ORDER_HISTORY = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
 
       if(!$ORDER_HISTORY){
          return;
       }
 
-      $ESTADO_FACTURADO =  (int)Configuration::get(static::PREFIX . 'ORDERHISTORYSTATE');
+      $ESTADO_FACTURADO =  (int)\Configuration::get(static::PREFIX . 'ORDERHISTORYSTATE');
 
       $new_order_state_id = (int)$params['newOrderStatus']->id;
 
@@ -573,7 +576,7 @@ class sjboverrides extends Module implements WidgetInterface {
          $order = new Order($params['id_order']);
          $order->invoice_date = date('Y-m-d H:i:s');
          $order->update();
-         ShopUrl::resetMainDomainCache();
+         \ShopUrl::resetMainDomainCache();
          static::debug('Fecha asignada a factura');
       }
    }
