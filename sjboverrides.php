@@ -71,7 +71,7 @@ class sjboverrides extends Module implements WidgetInterface {
 
       $this->error = false;
       $this->valid = false;
-      $this->ps_versions_compliancy = array('min' => '1.6', 'max' =>_PS_VERSION_);
+      $this->ps_versions_compliancy = array('min' => '1.7', 'max' =>_PS_VERSION_);
       $this->path = $this->_path; // Protected polo visto, logo uso unha public para os templates!
       static::$debugEnabled = (bool)\Configuration::get(self::PREFIX.'DEBUG_ENABLED');
    }
