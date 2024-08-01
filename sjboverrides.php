@@ -24,12 +24,26 @@ use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 class sjboverrides extends Module implements WidgetInterface {
 
 
-    const PREFIX = 'SJBOVERRIDE_';
+   const PREFIX = 'SJBOVERRIDE_';
 
-    protected $_hooks = array(
-        'actionAdminControllerSetMedia',
-        'actionOrderStatusPostUpdate'
-    );
+   protected $_hooks = array(
+      'actionAdminControllerSetMedia',
+      'actionOrderStatusPostUpdate'
+   );
+
+   // Novas rutas seo friendly
+   protected $routes = array(
+
+      'category_rule' => '{rewrite}/',
+      // 'product_rule' => '{rewrite}.html',  // producto-.html
+
+      //'module' => 'module/{module}{/:controller}',
+      //'cms_category_rule' => 'content/category/{id}-{rewrite}',
+      //'cms_rule' => 'info/{rewrite}',
+      //'layered_rule' => '{id}-{rewrite}{/:selected_filters}',
+      //'manufacturer_rule' => 'marca-{id}-{rewrite}',
+      //'supplier_rule' => 'proveedor-{id}-{rewrite}',
+   );
 
    public   $config = array(),
             $_loadedconfig,
@@ -57,9 +71,9 @@ class sjboverrides extends Module implements WidgetInterface {
    public function __construct()
    {
       $this->name = 'sjboverrides';
-      $this->version = '2.0';
+      $this->version = '2.1';
       $this->author = 'SJB DIXITAL ';
-      $this->tab = 'front_office_features';
+      // $this->tab = 'front_office_features';
       $this->need_instance = 0;
       $this->bootstrap = true;
 
@@ -92,6 +106,11 @@ class sjboverrides extends Module implements WidgetInterface {
          }
          static::debug("Hook $hook OK");
       }
+
+      if(!$this->installRoutes())return false;
+
+
+
       return $this->defaultValues(); // trivial!
    }
 
@@ -107,11 +126,12 @@ class sjboverrides extends Module implements WidgetInterface {
       }
 
       \Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
+      \Configuration::deleteByName(self::PREFIX.'URLREWRITE' );
       \Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
       \Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
       \Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
       \Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
-
+      $this->restoreRoutes();
       return true;
    }
 
@@ -121,13 +141,59 @@ class sjboverrides extends Module implements WidgetInterface {
    * @return void
    */
    protected function defaultValues(){
-
-
       \Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', FALSE );
+      \Configuration::deleteByName(self::PREFIX.'URLREWRITE', FALSE );
       \Configuration::updateValue(self::PREFIX.'ORDERHISTORY', FALSE );
       \Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
       \Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
       \Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
+      return true;
+   }
+
+
+   /* New permalinks struct*/
+   public function installRoutes(){
+
+      // --- BACKUP OLD ROUTES- --- 
+
+      // if exists backup, rename it
+      if(\Configuration::hasKey(self::PREFIX . 'OLD_ROUTES')){
+         // Reannme to something random:
+         $tmpstr =  self::xeneraString(6);
+         \Configuration::updateValue(self::PREFIX . 'OLD_ROUTES_' . $tmpstr, \Configuration::get(self::PREFIX . 'OLD_ROUTES'));
+      }
+
+      // Now backup routes
+      $tmp = [];
+      foreach ($this->routes as $route => $newvalue) {
+         if(\Configuration::hasKey('PS_ROUTE_' . $route)){
+            $tmp = \Configuration::get('PS_ROUTE_' . $route);
+            $_myarr['PS_ROUTE_' . $route] = $tmp;
+         }
+      }
+      // And if at least 1 config route:
+      if(count($_myarr))
+         \Configuration::updateGlobalValue(self::PREFIX . 'OLDROUTES', json_encode($_myarr, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+
+
+      // Finally install new routes
+      foreach($this->routes as $route => $pattern){
+          \Configuration::updateValue($route, $pattern);
+      }
+      return true;
+   }
+
+
+   /* Restaura routes vellas */
+   public function restoreRoutes(){
+      // Restore old routes
+      if(\Configuration::hasKey(self::PREFIX . 'OLD_ROUTES')){
+         $oldroutes = json_decode(\Configuration::get(self::PREFIX . 'OLD_ROUTES'), true);
+         foreach($oldroutes as $key => $value){
+            \Configuration::updateValue($key, $value);
+         }
+         \Configuration::deleteByName(self::PREFIX . 'OLD_ROUTES');
+      }
       return true;
    }
 
@@ -138,14 +204,13 @@ class sjboverrides extends Module implements WidgetInterface {
    */
    public function getContent(){
       $this->postProcess();
+      $this->_html .=  $this->getInstructions();
       $this->context->smarty->assign('path', $this->getPathUri() . 'views/'); // uri path for images
-      // $this->html .=  $this->getInstructions();
       $this->_html .= $this->renderForm();
       return $this->_html;
    }
 
-   public function postProcess()
-   {
+   public function postProcess(){
       if (\Tools::isSubmit('sjbSubmitConfig') ) {
 
          // static::debug(__METHOD__ . "\r\n" . var_export(Tools::getAllValues(), true));
@@ -154,6 +219,7 @@ class sjboverrides extends Module implements WidgetInterface {
          // arrays are not assigned by reference!
 
          \Configuration::updateGlobalValue(self::PREFIX .'IMAGEMANAGER', (int)Tools::getValue('image_manager'));
+         \Configuration::updateGlobalValue(self::PREFIX .'URLREWRITE', (int)Tools::getValue('url_rewrite'));
          \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORY', (int)Tools::getValue('order_history'));
          \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORYSTATE', (int)Tools::getValue('id_estado_facturado'));
          \Configuration::updateGlobalValue(self::PREFIX .'DEBUG_ENABLED', (int)Tools::getValue('debug_enabled'));
@@ -207,6 +273,7 @@ class sjboverrides extends Module implements WidgetInterface {
 
 
       $datos2Form['image_manager'] = (bool) \Configuration::get(self::PREFIX.'IMAGEMANAGER');
+      $datos2Form['url_rewrite'] = (bool) \Configuration::get(self::PREFIX.'URLREWRITE');
       $datos2Form['order_history'] = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
       $datos2Form['id_estado_facturado'] = (int) Configuration::get(self::PREFIX.'ORDERHISTORYSTATE');
       $datos2Form['module_override_reinstall']= false;
@@ -387,6 +454,30 @@ class sjboverrides extends Module implements WidgetInterface {
                            ),
                      ),
                   ),
+                   array(
+                     'type' => 'switch',
+                     'label' => $this->l('URL Rewrite'),
+                     'desc' => sprintf(
+                        '%1$s <strong>%2$s</strong> %3$s',
+                        $this->l('Override de '),
+                        $this->l('PS_ROUTES'),
+                        $this->l('para limpiar las URLs y eque no contengas referencia a los id\'s.')
+                        ),
+                     'name' => 'url_rewrite',
+                     //'is_bool' => true,
+                     'values' => array(
+                           array(
+                              'id' => 'url_rewrite_on',
+                              'value' => 1,
+                              'label' => $this->l('On'),
+                           ),
+                           array(
+                              'id' => 'url_rewrite_off',
+                              'value' => 0,
+                              'label' => $this->l('Off'),
+                           ),
+                     ),
+                  ),
 
 
 
@@ -534,8 +625,8 @@ class sjboverrides extends Module implements WidgetInterface {
 
 
 
-   public function hookActionAdminControllerSetMedia($params)
-   {
+   public function hookActionAdminControllerSetMedia($params){
+      var_dump('La cona, Josito');
       if (\Tools::getValue('controller') == 'AdminModules' && \Tools::getValue('configure') == $this->name) {
          $this->context->controller->addCSS('//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css', 'all');
          $this->context->controller->addCSS($this->_path . 'views/admin/admin.css', 'all');
@@ -554,8 +645,7 @@ class sjboverrides extends Module implements WidgetInterface {
       altern
     );
    */
-   public function hookActionOrderStatusPostUpdate($params)
-   {
+   public function hookActionOrderStatusPostUpdate($params){
       static::debug(__method__);
 
       $ORDER_HISTORY = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
@@ -653,6 +743,14 @@ class sjboverrides extends Module implements WidgetInterface {
       'Variable 2'=> 'Valor 2',
       ];
    }
+
+
+   static function xeneraString($lonx = 6){
+		$str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+		$cad = '';
+		while( strlen($cad)< $lonx )$cad .= substr($str, mt_rand(0,62), 1);
+		return $cad;
+	}
 
 
 }
