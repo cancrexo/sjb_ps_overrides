@@ -19,9 +19,9 @@
 declare(strict_types=1);
 
 use PrestaShopBundle\Form\Admin\Type\TranslatableType;
-use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+// use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
-class sjboverrides extends Module implements WidgetInterface {
+class sjboverrides extends Module{
 
 
    const PREFIX = 'SJBOVERRIDE_';
@@ -496,7 +496,7 @@ class sjboverrides extends Module implements WidgetInterface {
                            array(
                               'id' => 'override_reinstall_on',
                               'value' => 1,
-                              'label' => $this->l('Ejecutar'),
+                              'label' => $this->l('Dale!'),
                            ),
                            array(
                               'id' => 'override_reinstall_off',
@@ -626,7 +626,6 @@ class sjboverrides extends Module implements WidgetInterface {
 
 
    public function hookActionAdminControllerSetMedia($params){
-      var_dump('La cona, Josito');
       if (\Tools::getValue('controller') == 'AdminModules' && \Tools::getValue('configure') == $this->name) {
          $this->context->controller->addCSS('//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css', 'all');
          $this->context->controller->addCSS($this->_path . 'views/admin/admin.css', 'all');
@@ -671,78 +670,8 @@ class sjboverrides extends Module implements WidgetInterface {
       }
    }
 
-   /*
-          __        __  _       _                  _
-          \ \      / / (_)   __| |   __ _    ___  | |_   ___
-           \ \ /\ / /  | |  / _` |  / _` |  / _ \ | __| / __|
-            \ V  V /   | | | (_| | | (_| | |  __/ | |_  \__ \
-             \_/\_/    |_|  \__,_|  \__, |  \___|  \__| |___/
-                                    |___/
+  
 
-      Debes usar o interface PrestaShop\PrestaShop\Core\Module\WidgetInterface
-
-      e definir 2 metodos: renderWidget e getWidgetVariable
-
-      Podes usar o widgets de 2 formas:
-
-         <!-- php-->
-         Hook::exec($hook_name)
-            ou
-         <!-- smarty -->
-          {hook h='<hook_name>'}
-
-      ou podes usar metodo novo:
-
-         Hook::coreRenderWidget(Module $module, $hook_name, $params);
-
-         ou
-
-         <!-- ( smarty metodo 1) Generic call (metodo 1)-->
-         {widget name='<module_name>'}
-
-
-         <!-- ( smarty metodo 2) Call with a hook name -->
-         {widget name='<module_name>' hook='<hook_name>'}
-
-
-      */
-
-   // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
-   //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
-   public function renderWidget($hookName = null, array $configuration = []){
-
-
-      // if($hookName == 'hookDisplayNav1')return $this->hookDisplayNav1($configuration);
-      // $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
-      // //$this->getLocalPath() . 'views/templates/admin/instructions.tpl');
-      // return $this->display(__FILE__, 'views/templates/widget/fichero.tpl');
-      // die('no');
-      // var_dump('dale!!');
-
-      switch($hookName){
-
-         case 'displaycupontexto':
-            // si grupo catering, non se amosa cupon desconto diario
-           return '<p>'.$hookName.' <strong style="color:#0c0">correcto</strong>.</p>';
-         break;
-
-         default:
-            return '<p>'.$hookName.' <strong style="color:#c00">DESCONOCIDO</strong>.</p>';
-         break;
-
-      }
-      // return '<p>'.$hookName.' <strong style="color:#c00">DESCONOCIDO</strong>.</p>';
-      //$this->hookDismabocDisplayProducts($hookName);
-   }
-
-
-
-   public function getWidgetVariables($hookName = null , array $configuration = [] ) {
-      return [
-      'Variable 1' => 'Valor 1',
-      'Variable 2'=> 'Valor 2',
-      ];
-   }
 
 
    static function xeneraString($lonx = 6){
