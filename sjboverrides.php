@@ -17,10 +17,9 @@
 */
 declare(strict_types=1);
 use PrestaShopBundle\Form\Admin\Type\TranslatableType;
-// use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
 class sjboverrides extends Module implements WidgetInterface{
-
 
    const PREFIX = 'SJBOVERRIDE_';
 
@@ -34,7 +33,6 @@ class sjboverrides extends Module implements WidgetInterface{
 
       'category_rule' => '{rewrite}/',
       // 'product_rule' => '{rewrite}.html',  // producto-.html
-
       //'module' => 'module/{module}{/:controller}',
       //'cms_category_rule' => 'content/category/{id}-{rewrite}',
       //'cms_rule' => 'info/{rewrite}',
@@ -43,121 +41,121 @@ class sjboverrides extends Module implements WidgetInterface{
       //'supplier_rule' => 'proveedor-{id}-{rewrite}',
    );
 
-    public   $config = array(),
-                $_loadedconfig,
-                $error, $valid, $path,
-                $list_order_state;
+   public   $config = array(),
+               $_loadedconfig,
+               $error, $valid, $path,
+               $list_order_state;
 
-    protected $_html = '';
-        // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
+   protected $_html = '';
+      // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
 
-    static $debugEnabled = true;
+   static $debugEnabled = true;
 
 
-    /*
-        * Debug de clase
-        * Uso:   self::debug('error aqui')
-        */
-    static function debug($msg = '', $level = 1){
-        if(!static::$debugEnabled)return;
-        \PrestaShopLogger::addLog($msg, (int)$level);
-    }
+   /*
+   * Debug de clase
+   * Uso:   self::debug('error aqui')
+   */
+   static function debug($msg = '', $level = 1){
+      if(!static::$debugEnabled)return;
+      \PrestaShopLogger::addLog($msg, (int)$level);
+   }
 
-    /**
-     * Constructor
-     */
-    public function __construct(){
-        $this->name = 'sjboverrides';
-        $this->tab = 'front_office_features';
-        $this->version = '2.0.0';
-        $this->need_instance = 0;
-        $this->author = 'Daniel Prol «Cancrexo» ';
-        $this->ps_versions_compliancy = array('min' => '1.7.6',  'max' =>_PS_VERSION_);
-        $this->bootstrap = true;
-        //$this->module_key = '';
-        parent::__construct();
+      /**
+       * Constructor
+      */
+      public function __construct(){
+         $this->name = 'sjboverrides';
+         $this->tab = 'front_office_features';
+         $this->version = '2.0.0';
+         $this->need_instance = 0;
+         $this->author = 'Daniel Prol «Cancrexo» ';
+         $this->ps_versions_compliancy = array('min' => '1.7.6',  'max' =>_PS_VERSION_);
+         $this->bootstrap = true;
+         //$this->module_key = '';
+         parent::__construct();
 
-        $this->displayName = $this->l('SJB Overrides ');
-        $this->description = $this->l('Módulo para insertar overrides, hooks y widgets varios.');
-        $this->confirmUninstall = $this->l('¿Seguro que quieres desinstalar este módulo?');
+         $this->displayName = $this->l('SJB Overrides ');
+         $this->description = $this->l('Módulo para insertar overrides, hooks y widgets varios.');
+         $this->confirmUninstall = $this->l('¿Seguro que quieres desinstalar este módulo?');
 
-        $this->error = false;
-        $this->valid = false;
-        $this->path = $this->_path; // Protected polo visto, logo uso unha public para os templates!
-        static::$debugEnabled = (bool)\Configuration::get(self::PREFIX.'DEBUG_ENABLED');
-    }
+         $this->error = false;
+         $this->valid = false;
+         $this->path = $this->_path; // Protected polo visto, logo uso unha public para os templates!
+         static::$debugEnabled = (bool)\Configuration::get(self::PREFIX.'DEBUG_ENABLED') ?? true;
+      }
 
-    public function install()
-    {
-        error_log('instalar');
-        static::debug($this->name  . ' INSTALL');
+      public function install()
+      {
+         error_log('instalar');
+         static::debug($this->name  . ' INSTALL');
 
-        if (!parent::install()) {
+         if (!parent::install()) {
             static::debug("Error en parent_install");
             return false;
-        }
+         }
 
-        foreach ($this->_hooks as $hook) {
+         foreach ($this->_hooks as $hook) {
             if (!$this->registerHook($hook)) {
-                static::debug("Error en Hook $hook");
-                return false;
+                  static::debug("Error en Hook $hook");
+                  return false;
             }
             static::debug("Hook $hook OK");
-        }
-        return $this->defaultValues(); // trivial!
-    }
+         }
+         return $this->defaultValues(); // trivial!
+      }
 
-    public function uninstall(){
-        $this->_clearCache('*');
+      public function uninstall(){
+         $this->_clearCache('*');
 
-        if (!parent::uninstall()) {
+         if (!parent::uninstall()) {
             return false;
-        }
+         }
 
-        foreach ($this->_hooks as $hook) {
+         foreach ($this->_hooks as $hook) {
             $this->unregisterHook($hook);
-        }
+         }
 
-        \Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
-        \Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
-        \Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
-        \Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
-        \Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
+         \Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
+         \Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
+         \Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
+         \Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
+         \Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
 
-        return true;
-    }
+         return true;
+      }
 
-    /**
-     * Valores por defecto
-     *
-     * @return void
-     */
-    protected function defaultValues(){
-
-
-        \Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', false );
-        \Configuration::updateValue(self::PREFIX.'ORDERHISTORY', false );
-        \Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
-        \Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
-        \Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
-        return true;
-    }
+      /**
+       * Valores por defecto
+      *
+      * @return void
+      */
+      protected function defaultValues(){
 
 
-    /**
-     * Pantalla de configuracion/ administración
-     *
-     */
-    public function getContent(){
-        $this->postProcess();
-        $this->context->smarty->assign('path', $this->getPathUri() . 'views/'); // uri path for images
-        $this->_html .= $this->renderForm();
-        return $this->_html;
-    }
+         \Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', false );
+         \Configuration::updateValue(self::PREFIX.'ORDERHISTORY', false );
+         \Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
+         \Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
+         \Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
+         return true;
+      }
 
-    public function postProcess()
-    {
-        if (\Tools::isSubmit('sjbSubmitConfig') ) {
+
+      /**
+       * Pantalla de configuracion/ administración
+      *
+      */
+      public function getContent(){
+         $this->postProcess();
+         $this->context->smarty->assign('path', $this->getPathUri() . 'views/'); // uri path for images
+         $this->_html .= $this->renderForm();
+         return $this->_html;
+      }
+
+      public function postProcess()
+      {
+         if (\Tools::isSubmit('sjbSubmitConfig') ) {
 
             // arrays are not assigned by reference!
             $formvalues = array(); // array with sanitized values
@@ -171,18 +169,18 @@ class sjboverrides extends Module implements WidgetInterface{
 
 
             if((int)\Tools::getValue('module_override_reinstall')){
-                $overrides = $this->uninstallOverrides() &&  $this->installOverrides();
-                $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Overrides resintalados OK', [], 'Modules.Sjboverrides.Admin')));
+                  $overrides = $this->uninstallOverrides() &&  $this->installOverrides();
+                  $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Overrides resintalados OK', [], 'Modules.Sjboverrides.Admin')));
             }
 
             if((int)\Tools::getValue('module_cache_clear')){
-                $this->vaciaCache();
-                $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
+                  $this->vaciaCache();
+                  $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
             }
 
             $this->_html .= $this->displayConfirmation( $this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin') );
-        }
-    } // postProcess
+         }
+      } // postProcess
 
 
    /**
@@ -200,14 +198,14 @@ class sjboverrides extends Module implements WidgetInterface{
       \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
 
       // Estad pedidos
-		$order_state = \OrderStateCore::getOrderStates( $this->context->language->id);
+      $order_state = \OrderStateCore::getOrderStates( $this->context->language->id);
 
-		$this->list_order_state = array();
+      $this->list_order_state = array();
 
-		foreach($order_state as $OS){
+      foreach($order_state as $OS){
 
-			$this->list_order_state[] = array( 'id_order_state'  => $OS['id_order_state'], 'label' => $OS['name']);
-		}
+         $this->list_order_state[] = array( 'id_order_state'  => $OS['id_order_state'], 'label' => $OS['name']);
+      }
 
 
 
@@ -261,72 +259,71 @@ class sjboverrides extends Module implements WidgetInterface{
       return $this->context->smarty->fetch($this->getLocalPath() . 'views/admin/info-plugin.tpl');
    }
 
-   public function getFormHooks(){
 
+   public function getFormHooks(){
 
       return array(
          'form' => array(
 
-               'legend' => array(
-                  'title' => $this->l('Hooks'),
-                  'icon' => 'icon-cog'
-                ),
-
-               'input' => array(
-
-                    array(
-                        'type' => 'switch',
-                        'label' => $this->l('OrderHistory'),
-                        'desc' => sprintf('%1$s <strong>%2$s</strong> %3$s',
-                            $this->l('Hook para la gestión de'),
-                            $this->l('Facturas'),
-                            $this->l('Se asigna la Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable '). '<b>'.static::PREFIX . 'ESTADO_FACTURADO</b>.'
-                        ),
-
-                        'name' => 'order_history',
-
-                        'values' => array(
-                            array(
-                                'id' => 'ESTADO_FACTURADO',
-                                'value' => 1,
-                                'label' => $this->l('On')
-                            ),
-                            array(
-                                'id' => 'order_history_off',
-                                'value' => 0,
-                                'label' => $this->l('Off')
-                            )
-                        )
-                    ),
-                    array(
-                        'form_group_class'=>'grupo-estadofacturado ' . ((bool)\Configuration::get(self::PREFIX.'ORDERHISTORY') ? '' : 'hidden'),
-                        'type'     => 'select', // This is a <select> tag.
-                        'label'    => $this->l('Estado facturado'), // The <label> for this <select> tag.
-                        'desc'   => sprintf(
-                            '%1$s <strong>%2$s</strong>.',
-                            $this->l('Define cuál es el estado FACTURADO necesario para asignar la fecha a la factura. Se asigna a la variable de config '), static::PREFIX . 'ORDERHISTORYSTATE'),
-
-                        'cols' => 3,
-                        'class' => 'sjboverrides',
-                        'name'     => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
-                        'options'  => array(
-                            'id'    => 'id_order_state',
-                            'name'  => 'label',
-                            'query' => $this->list_order_state,
-                        )
-                    )
+            'legend' => array(
+               'title' => $this->l('Hooks'),
+               'icon' => 'icon-cog'
                ),
-               'submit' => array(
-                  'title' => $this->l('Save'),
-                  'name' => 'sjbSubmitConfig',
-                  'class' => 'sjbsubmit btn btn-default pull-right'
+
+            'input' => array(
+
+               array(
+                  'type' => 'switch',
+                  'label' => $this->l('OrderHistory'),
+                  'desc' => sprintf('%1$s <strong>%2$s</strong> %3$s',
+                        $this->l('Hook para la gestión de'),
+                        $this->l('Facturas'),
+                        $this->l('Se asigna la Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable '). '<b>'.static::PREFIX . 'ESTADO_FACTURADO</b>.'
+                  ),
+
+                  'name' => 'order_history',
+
+                  'values' => array(
+                        array(
+                           'id' => 'ESTADO_FACTURADO',
+                           'value' => 1,
+                           'label' => $this->l('On')
+                        ),
+                        array(
+                           'id' => 'order_history_off',
+                           'value' => 0,
+                           'label' => $this->l('Off')
+                        )
+                  )
+               ),
+               array(
+                  'form_group_class'=>'grupo-estadofacturado ' . ((bool)\Configuration::get(self::PREFIX.'ORDERHISTORY') ? '' : 'hidden'),
+                  'type'     => 'select', // This is a <select> tag.
+                  'label'    => $this->l('Estado facturado'), // The <label> for this <select> tag.
+                  'desc'   => sprintf(
+                        '%1$s <strong>%2$s</strong>.',
+                        $this->l('Define cuál es el estado FACTURADO necesario para asignar la fecha a la factura. Se asigna a la variable de config '), static::PREFIX . 'ORDERHISTORYSTATE'),
+
+                  'cols' => 3,
+                  'class' => 'sjboverrides',
+                  'name'     => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+                  'options'  => array(
+                        'id'    => 'id_order_state',
+                        'name'  => 'label',
+                        'query' => $this->list_order_state,
+                  )
                )
+            ),
+            'submit' => array(
+               'title' => $this->l('Save'),
+               'name' => 'sjbSubmitConfig',
+               'class' => 'sjbsubmit btn btn-default pull-right'
+            )
          )
       );
    }
 
    public function getFormOverrides(){
-
 
       return array(
          'form' => array(
@@ -361,7 +358,7 @@ class sjboverrides extends Module implements WidgetInterface{
                            )
                      )
                   ),
-                   array(
+                     array(
                      'type' => 'switch',
                      'label' => $this->l('URL Rewrite'),
                      'desc' => sprintf(
@@ -435,68 +432,68 @@ class sjboverrides extends Module implements WidgetInterface{
 
                'input' => array(
 
-                array(
-                    'form_group_class'=>'grupo-clearcache ',
-                    'type' => 'switch',
-                    'label' =>'Vaciar la cache de Prestashop',
-                    'desc' => sprintf('<em style="color:#001">%1$s</em>',$this->l('Si cambias el metodo de regeneración de imagenes puede que tengas que vaciar el cache. Puedes hacerlo desde aquí o bien desde las opciones de Prestashop.')),
+                  array(
+                     'form_group_class'=>'grupo-clearcache ',
+                     'type' => 'switch',
+                     'label' =>'Vaciar la cache de Prestashop',
+                     'desc' => sprintf('<em style="color:#001">%1$s</em>',$this->l('Si cambias el metodo de regeneración de imagenes puede que tengas que vaciar el cache. Puedes hacerlo desde aquí o bien desde las opciones de Prestashop.')),
 
-                    'name' => 'module_cache_clear',
+                     'name' => 'module_cache_clear',
 
-                    'values' => array(
+                     'values' => array(
                         array(
-                            'id' => 'cache_clear_on',
-                            'value' => 1,
-                            'label' => $this->l('Vaciar')
+                              'id' => 'cache_clear_on',
+                              'value' => 1,
+                              'label' => $this->l('Vaciar')
                         ),
                         array(
-                            'id' => 'cache_clear_off',
-                            'value' => 0,
-                            'label' => $this->l('Off')
+                              'id' => 'cache_clear_off',
+                              'value' => 0,
+                              'label' => $this->l('Off')
                         ))
-                    ),
+                     ),
 
-                    array(
+                     array(
                         'type' => 'switch',
                         'label' => $this->l('Debug Mode'),
                         'desc' => sprintf(
-                            '%1$s <em style="color:#c00">%2$s</em>',
-                            $this->l('If active, module  will log messages to PS registry'),
-                            'PS registry'),
+                              '%1$s <em style="color:#c00">%2$s</em>',
+                              $this->l('If active, module  will log messages to PS registry'),
+                              'PS registry'),
 
                         'name' => 'debug_enabled',
 
                         'values' => array(
-                            array(
-                                'id' => 'debug_enabled_on',
-                                'value' => 1,
-                                'label' => $this->l('Yes')
-                            ),
-                            array(
-                                'id' => 'debug_enabled_off',
-                                'value' => 0,
-                                'label' => $this->l('No')
+                              array(
+                                 'id' => 'debug_enabled_on',
+                                 'value' => 1,
+                                 'label' => $this->l('Yes')
+                              ),
+                              array(
+                                 'id' => 'debug_enabled_off',
+                                 'value' => 0,
+                                 'label' => $this->l('No')
                         ))
-                    ),
+                     ),
 
-                    array(
+                     array(
                         'type' => 'switch',
                         'label' => $this->l('Remove data on uninstall'),
                         'desc' => $this->l('If set to true, all config data will be removed from database on uninstall.'),
                         'name' => 'remove_data',
                         'values' => array(
-                            array(
-                                'id' => 'remove_data_on',
-                                'value' => 1,
-                                'label' => $this->l('Yes')
-                            ),
-                            array(
-                                'id' => 'remove_data_off',
-                                'value' => 0,
-                                'label' => $this->l('No')
-                            )
+                              array(
+                                 'id' => 'remove_data_on',
+                                 'value' => 1,
+                                 'label' => $this->l('Yes')
+                              ),
+                              array(
+                                 'id' => 'remove_data_off',
+                                 'value' => 0,
+                                 'label' => $this->l('No')
+                              )
                         )
-                    )
+                     )
                ),
 
                'submit' => array(
@@ -555,11 +552,11 @@ class sjboverrides extends Module implements WidgetInterface{
    }
 
    /*
-          __        __  _       _                  _
-          \ \      / / (_)   __| |   __ _    ___  | |_   ___
-           \ \ /\ / /  | |  / _` |  / _` |  / _ \ | __| / __|
+            __        __  _       _                  _
+            \ \      / / (_)   __| |   __ _    ___  | |_   ___
+            \ \ /\ / /  | |  / _` |  / _` |  / _ \ | __| / __|
             \ V  V /   | | | (_| | | (_| | |  __/ | |_  \__ \
-             \_/\_/    |_|  \__,_|  \__, |  \___|  \__| |___/
+               \_/\_/    |_|  \__,_|  \__, |  \___|  \__| |___/
                                     |___/
 
       Debes usar o interface PrestaShop\PrestaShop\Core\Module\WidgetInterface
@@ -572,7 +569,7 @@ class sjboverrides extends Module implements WidgetInterface{
          Hook::exec($hook_name)
             ou
          <!-- smarty -->
-          {hook h='<hook_name>'}
+            {hook h='<hook_name>'}
 
       ou podes usar metodo novo:
 
@@ -608,8 +605,8 @@ class sjboverrides extends Module implements WidgetInterface{
 
    public function getWidgetVariables($hookName = null , array $configuration = [] ) {
       return [
-        'Variable 1' => 'Valor 1',
-        'Variable 2'=> 'Valor 2'
+         'Variable 1' => 'Valor 1',
+         'Variable 2'=> 'Valor 2'
       ];
    }
 
