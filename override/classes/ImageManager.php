@@ -55,7 +55,7 @@ class ImageManager extends ImageManagerCore
         // if (strpos($dst_file, '_sjb')!== FALSE){
         //    return self::sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type);
         // }
-        // Fotos coa extension chula: sjb, _sjba
+        // Fotos coa extension chula: sjb, _sjba. Esto haberia que configuralo
         if (array_filter(['_sjb', '_sjba'], fn($ext) => strpos($dst_file, $ext) !== false)) {
             return self::sjb_new_resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type);
         }
@@ -244,14 +244,14 @@ class ImageManager extends ImageManagerCore
 
         if (strpos($dst_file, '_sjba') !== false) {
             $TIPO_REDIMENSION = self::SJB_CROP_FIT;
+            $POS_RECORTE      = 1; // Top-center (0,1,2,3,4,5,6,7,8)
         }
         // Redimensionar hasta que entre no "marco" (poden quedar ocos)
         else {
             $TIPO_REDIMENSION = self::SJB_CROP_AXUSTAR;
+            $POS_RECORTE      = 1; // Top-center
         }
         // Axustar ata o  LIMITE E CORTAR O QUE SOBRE
-
-        $POS_RECORTE = 1; // Top-center
 
         $dest_image = imagecreatetruecolor($canvas_width, $canvas_height);
 

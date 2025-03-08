@@ -18,13 +18,16 @@ const menuLink_Faceted = ()=>{
     // token backend PS
     // const token = document.querySelector('body').dataset.token;
     // baseAdminDir -->varibale prestahop
-    const url = `${baseAdminDir}index.php/improve/modules/manage/action/configure/ps_facetedsearch?_token=${token}`;
+    // const url = `${baseAdminDir}index.php/improve/modules/manage/action/configure/ps_facetedsearch?_token=${token}`;
+    //http://ps17.lan/adminweb/index.php?controller=AdminModules&configure=ps_facetedsearch&token=46eee12cb45ff1e8b2788286c5fe8daa
+    const url = sjboverride_links['ps_faceted'];
     const li = document.createElement('li');
     li.classList.add(...['link-leveltwo', 'sjboverride']);
     li.innerHTML = `<a class="sjboverride-link link-leveltwo" id="faceted-link" href="${url}"><span>Filtros Busqueda</span></a>`;
     const ul = document.querySelector('#subtab-AdminCatalog > ul');
     console.group(ul);
     ul.appendChild(li);
+    
 
 }
 

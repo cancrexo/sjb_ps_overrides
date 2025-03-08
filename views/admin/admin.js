@@ -2,7 +2,6 @@
 // Scripts de controller
 
 document.addEventListener('DOMContentLoaded', ()=> {
-   console.log('adminsito');
 
    const select_estado_facturado = document.querySelector('.form-group.grupo-estadofacturado');
    const switch_estado_facturado = document.querySelectorAll('input[name="order_history"]');

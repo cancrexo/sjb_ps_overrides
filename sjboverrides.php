@@ -523,12 +523,15 @@ class sjboverrides extends Module implements WidgetInterface
         }
 
         // Esto vai comun (menus backedn)
+        //http://ps17.lan/adminweb/index.php?controller=AdminFeatures&updatefeature=&id_feature=1&token=c990a641087071078ae14e7f810b5620
+        // AdminFeatures&viewfeature=&id_feature=1
+        // "&updatefeature&id_feature=1",
 
         $tojs = ['sjboverride_links' =>
             [
 
-                'ps_faceted'         => 'A',
-                'catalogo_etiquetas' => $link1 = $this->context->link->getAdminLink('AdminAttributesGroups') . "&&viewfeature=&id_feature=1",
+                'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
+                'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
                 'etiquetas_id'       => 1, // id_feature
                 'theme_settings'     => 'C',
             ],
