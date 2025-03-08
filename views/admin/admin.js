@@ -1,5 +1,5 @@
 
-
+// Scripts de controller
 
 document.addEventListener('DOMContentLoaded', ()=> {
    console.log('adminsito');
@@ -15,11 +15,14 @@ document.addEventListener('DOMContentLoaded', ()=> {
       });
    });
 
-    
+
 
    console.log(switch_estado_facturado);
    console.log(select_estado_facturado);
 
 });
+
+//   if (document.readyState === "interactive" || document.readyState === "complete" ) {
+        // baseAdminDir -->variable prestahop
 
 

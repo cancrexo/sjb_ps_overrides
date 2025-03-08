@@ -1,20 +1,5 @@
 
-:root{
-   ---sjb-first-color: #f90;
-   ---sjb-second-color: #fc0;
-
-
-}
-.clearfix{
-	width:100%;
-	clear:both;
-}
-#sjboverrides-info{
-   font-size:17px;
-}
-#sjboverrides-info strong{
-   color: var(---sjb-second-color);
-}
+/* Especifico do controller */ 
 
 select.sjboverrides.fixed-width-xl{
    width:100% !important;

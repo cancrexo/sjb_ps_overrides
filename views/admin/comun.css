@@ -1,0 +1,32 @@
+
+
+
+
+/*css enlaces menu, COMUNS*/
+li.sjboverride{
+   margin-bottom:6px;
+}
+
+.sjboverride-link{
+    text-decoration: none !important;
+ }
+
+ .sjboverride-link span{
+    padding:3px;
+    font-size:12px !important;
+    background:rgba(255, 255, 255, 0.5);
+    color:#000;
+    font-weight: 600;
+    transition: 150ms ease-in-out;
+}
+
+.sjboverride-link:hover span{
+   color:#000 !important;
+   background:#fff;
+   text-decoration: none;
+}
+
+ /*axustes espsificos*/
+ /* .menuLink_Faceted{}
+ .menuLink_Etiquetas{}
+ .menuLink_Themesettings{} */
