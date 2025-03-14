@@ -68,7 +68,7 @@ class sjboverrides extends Module implements WidgetInterface
     {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.1.0';
+        $this->version                = '2.1.1';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -533,7 +533,7 @@ class sjboverrides extends Module implements WidgetInterface
                 'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
                 'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
                 'etiquetas_id'       => 1, // id_feature
-               
+
             ],
         ];
         Media::addJsDef($tojs);
