@@ -8,7 +8,7 @@ document.onreadystatechange = function () {
 const el_Llonatan = () => {
     if(sjboverride_links['ps_faceted'])menuLink_Faceted();
     if(sjboverride_links['catalogo_etiquetas'])menuLink_Etiquetas();
-    if(sjboverride_links['ps_themesettings'])menuLink_Themesettings();
+    // if(sjboverride_links['ps_themesettings'])menuLink_Themesettings();
 
 }
 
@@ -45,5 +45,3 @@ const menuLink_Etiquetas = ()=>{
     console.group(ul);
     ul.appendChild(li);
 }
-
-const menuLink_Themesettings = ()=>{console.log('ok');}

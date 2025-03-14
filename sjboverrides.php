@@ -533,7 +533,7 @@ class sjboverrides extends Module implements WidgetInterface
                 'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
                 'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
                 'etiquetas_id'       => 1, // id_feature
-                'theme_settings'     => 'C',
+               
             ],
         ];
         Media::addJsDef($tojs);
