@@ -238,7 +238,7 @@ class sjboverrides extends Module implements WidgetInterface
         return $helper->generateForm(
             [
                 $this->getFormOverrides(),
-                $this->getFormHooks(),
+                $this->getFormPedidos(),
                 $this->getFormDebug(),
             ]
         );
@@ -263,14 +263,15 @@ class sjboverrides extends Module implements WidgetInterface
         return $this->context->smarty->fetch($this->getLocalPath() . 'views/admin/info-plugin.tpl');
     }
 
-    public function getFormHooks()
+    // override pedidos
+    public function getFormPedidos()
     {
 
         return [
             'form' => [
 
                 'legend' => [
-                    'title' => $this->l('Hooks'),
+                    'title' => $this->l('Orders'),
                     'icon'  => 'icon-cog',
                 ],
 
@@ -327,6 +328,114 @@ class sjboverrides extends Module implements WidgetInterface
         ];
     }
 
+    // Override imageManager
+    public function getFormImages()
+    {
+        // Cargar imaxes disponibles 
+
+        /*Tamaños de imaxe*/
+		$this->list_imagesizes = array();
+		$imagelist = ImageType::getImagesTypes(null, true); // $type = null, $order_by_size = false
+        // $this->list_imagesizes[] = array('id_image_type' => 0, 'name' => $this->l('No mostrar'));
+        
+        foreach ($imagelist as $IL) {
+            $this->list_imagesizes[] = array(
+                'id_image_type' => (int) $IL['id_image_type'],
+                'name' => sprintf('%1$s (<em>%2$s x %3$s</em>)', $IL['name'], $IL['width'], $IL['height']),
+            );
+        }
+
+        $FORM =  [
+            'form' => [
+
+                'legend' => [
+                    'title' => $this->l('Imagenes'),
+                    'icon'  => 'icon-cog',
+                ],
+
+                'input'  => [
+
+                    [
+                        'type'   => 'switch',
+                        'label'  => $this->l('Imagenes chulas'),
+                        'desc'   => sprintf('%1$s <strong>%2$s</strong> %3$s',
+                            $this->l('Override de clase'),
+                            $this->l('Imagemanager'),
+                            $this->l('para recorte preciso de las imágenes. Se aplica a por defecto a las imagenes con nombre _sjb')
+                        ),
+
+                        'name'   => 'image_manager',
+
+                        'values' => [
+                            [
+                                'id'    => 'image_manager_on',
+                                'value' => 1,
+                                'label' => $this->l('On'),
+                            ],
+                            [
+                                'id'    => 'image_manager_off',
+                                'value' => 0,
+                                'label' => $this->l('Off'),
+                            ],
+                        ],
+                    ],
+                    // Mellox checboxes e si activas, pos a imaxe e ao lafdo un select co tipo de recorte
+                    // SJB_CROP_HARD, SJB_CROP_AXUSTAR, SJB_CROP_FIT, etc
+                    [
+                        'form_group_class' => 'grupo-imagemanager ' . ((bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER') ? '' : 'hidden'),
+                        'type'             => 'select',                     // This is a <select> tag.
+                        'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
+                        'desc'             => sprintf(
+                            '%1$s <strong>%2$s</strong>.',
+                            $this->l('elecciona que tipode iminaituras se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
+
+                        'cols'             => 3,
+                        'class'            => 'sjboverrides',
+                        'name'             => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+                        'options'          => [
+                            'id'    => 'id_order_state',
+                            'name'  => 'label',
+                            'query' => $this->list_order_state,
+                        ],
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->l('Save'),
+                    'name'  => 'sjbSubmitConfig',
+                    'class' => 'sjbsubmit btn btn-default pull-right',
+                ],
+            ],
+        ];
+
+        foreach($this->list_imagesizes as $item){
+           // Añadir html e xestionalo pot js e pista??elemetnos js por exemplo???
+        }
+
+
+        $FORM['form']['input'][]= [
+            'form_group_class' => 'grupo-imagemanager ' . ((bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER') ? '' : 'hidden'),
+            'type'             => 'select',                     // This is a <select> tag.
+            'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
+            'desc'             => sprintf(
+                '%1$s <strong>%2$s</strong>.',
+                $this->l('elecciona que tipode iminaituras se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
+
+            'cols'             => 3,
+            'class'            => 'sjboverrides',
+            'name'             => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+            'options'          => [
+                'id'    => 'id_order_state',
+                'name'  => 'label',
+                'query' => $this->list_order_state,
+            ],
+        ];
+
+        
+
+
+        return $FORM;
+    }
+    // Resintalar overrides y activar overrdeis sin opciones
     public function getFormOverrides()
     {
 
@@ -529,7 +638,7 @@ class sjboverrides extends Module implements WidgetInterface
 
         $tojs = ['sjboverride_links' =>
             [
-
+                'sjboverrides'       => $this->context->link->getAdminLink('AdminModules') . "&configure=sjboverrides",
                 'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
                 'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
                 'etiquetas_id'       => 1, // id_feature

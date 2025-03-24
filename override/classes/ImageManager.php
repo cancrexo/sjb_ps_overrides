@@ -56,7 +56,7 @@ class ImageManager extends ImageManagerCore
         //    return self::sjb_new_resize( $src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type);
         // }
         // Fotos coa extension chula: sjb, _sjba. Esto haberia que configuralo
-        if (array_filter(['_sjb', '_sjba'], fn($ext) => strpos($dst_file, $ext) !== false)) {
+        if (array_filter(['_sjb', '_sjba', 'home_default'], fn($ext) => strpos($dst_file, $ext) !== false)) {
             return self::sjb_new_resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type);
         }
 
@@ -242,7 +242,7 @@ class ImageManager extends ImageManagerCore
         // $dst_width -= (int)$margenW;
         // $dst_height -= (int)$margenH;
 
-        if (strpos($dst_file, '_sjba') !== false) {
+        if (strpos($dst_file, '_sjba') !== false ) {
             $TIPO_REDIMENSION = self::SJB_CROP_FIT;
             $POS_RECORTE      = 1; // Top-center (0,1,2,3,4,5,6,7,8)
         }
