@@ -31,16 +31,16 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd, nome de variable para GET/POST, valor por defecto, tipo valor(0,1,2,)
     // todo
     protected $config = [
-        'IMAGEMANAGER', 'image_manager',
-        'ORDERHISTORY', 'order_history',
-        'ORDERHISTORYSTATE', 'id_estado_facturado',
-        'DEBUG_ENABLED', 'debug_enabled',
-        'REMOVE_DATA', 'remove_data',
-
+        'image_manager'             => [],
+        'order_history'             => [],
+        'id_order_history_state'    => [],
+        'debug_enabled'             => [true],
+        'remove_data'               => [true],
     ];
 
-    public $_loadedconfig,
-    $error, $valid, $path,
+    public
+        $_loadedconfig,
+        $error, $valid, $path,
         $list_order_state;
 
     protected $_html = '';
@@ -48,16 +48,19 @@ class sjboverrides extends Module implements WidgetInterface
 
     static $debugEnabled = true;
 
+
+    static function myreplace($str){
+        $limpia = strtoupper(str_ireplace(array('_'), '', $str));
+        return $limpia;
+    }
+
     /*
     * Debug de clase
     * Uso:   self::debug('error aqui')
     */
     public static function debug($msg = '', $level = 1)
     {
-        if (! static::$debugEnabled) {
-            return;
-        }
-
+        if (! static::$debugEnabled) return;
         \PrestaShopLogger::addLog($msg, (int) $level);
     }
 
@@ -68,7 +71,7 @@ class sjboverrides extends Module implements WidgetInterface
     {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.1.1';
+        $this->version                = '2.1.2';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -118,13 +121,11 @@ class sjboverrides extends Module implements WidgetInterface
         foreach ($this->_hooks as $hook) {
             $this->unregisterHook($hook);
         }
-
-        \Configuration::deleteByName(self::PREFIX . 'IMAGEMANAGER');
-        \Configuration::deleteByName(self::PREFIX . 'ORDERHISTORY');
-        \Configuration::deleteByName(self::PREFIX . 'ORDERHISTORYSTATE');
-        \Configuration::deleteByName(self::PREFIX . 'DEBUG_ENABLED');
-        \Configuration::deleteByName(self::PREFIX . 'REMOVE_DATA');
-
+        foreach($this->config as $key) {
+            $key = static::myreplace($key);
+            \Configuration::deleteByName(self::PREFIX . $key);
+        }
+     
         return true;
     }
 
@@ -135,12 +136,10 @@ class sjboverrides extends Module implements WidgetInterface
      */
     protected function defaultValues()
     {
-
-        \Configuration::updateValue(self::PREFIX . 'IMAGEMANAGER', false);
-        \Configuration::updateValue(self::PREFIX . 'ORDERHISTORY', false);
-        \Configuration::updateValue(self::PREFIX . 'ORDERHISTORYSTATE', 0);
-        \Configuration::updateValue(self::PREFIX . 'DEBUG_ENABLED', true);
-        \Configuration::updateValue(self::PREFIX . 'REMOVE_DATA', false);
+        foreach($this->config as $key=> $value) {
+            $key = static::myreplace($key);
+            \Configuration::updateValue(self::PREFIX . $key, $value ?? false);
+        }
         return true;
     }
 
@@ -169,11 +168,16 @@ class sjboverrides extends Module implements WidgetInterface
                               // arrays are not assigned by reference!
             $formvalues = []; // array with sanitized values
 
-            \Configuration::updateGlobalValue(self::PREFIX . 'IMAGEMANAGER', (int) Tools::getValue('image_manager'));
-            \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORY', (int) Tools::getValue('order_history'));
-            \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORYSTATE', (int) Tools::getValue('id_estado_facturado'));
-            \Configuration::updateGlobalValue(self::PREFIX . 'DEBUG_ENABLED', (int) Tools::getValue('debug_enabled'));
-            \Configuration::updateGlobalValue(self::PREFIX . 'REMOVE_DATA', (int) Tools::getValue('remove_data'));
+            foreach($this->config as $key=> $value) {
+                $upper = static::myreplace($key);
+                \Configuration::updateValue(self::PREFIX . $upper, (int) Tools::getValue($key));
+            }
+
+            // \Configuration::updateGlobalValue(self::PREFIX . 'IMAGEMANAGER', (int) Tools::getValue('image_manager'));
+            // \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORY', (int) Tools::getValue('order_history'));
+            // \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORYSTATE', (int) Tools::getValue('id_order_history_state'));
+            // \Configuration::updateGlobalValue(self::PREFIX . 'DEBUG_ENABLED', (int) Tools::getValue('debug_enabled'));
+            // \Configuration::updateGlobalValue(self::PREFIX . 'REMOVE_DATA', (int) Tools::getValue('remove_data'));
 
             if ((int) \Tools::getValue('module_override_reinstall')) {
                 $overrides = $this->uninstallOverrides() && $this->installOverrides();
@@ -213,15 +217,20 @@ class sjboverrides extends Module implements WidgetInterface
 
             $this->list_order_state[] = ['id_order_state' => $OS['id_order_state'], 'label' => $OS['name']];
         }
+        foreach($this->config as $key=> $value) {
+            $upper = static::myreplace($key);
+            $datos2Form[$key] = \Configuration::get(self::PREFIX . $upper);
+        }
+        // $datos2Form['image_manager']             = (bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER');
+        // $datos2Form['url_rewrite']               = (bool) \Configuration::get(self::PREFIX . 'URLREWRITE');
+        // $datos2Form['order_history']             = (bool) \Configuration::get(self::PREFIX . 'ORDERHISTORY');
+        // $datos2Form['id_order_history_state']       = (int) Configuration::get(self::PREFIX . 'ORDERHISTORYSTATE');
+        // $datos2Form['debug_enabled']             = (bool) \Configuration::get(self::PREFIX . 'DEBUG_ENABLED');
+        // $datos2Form['remove_data']               = (bool) \Configuration::get(self::PREFIX . 'REMOVE_DATA');
 
-        $datos2Form['image_manager']             = (bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER');
-        $datos2Form['url_rewrite']               = (bool) \Configuration::get(self::PREFIX . 'URLREWRITE');
-        $datos2Form['order_history']             = (bool) \Configuration::get(self::PREFIX . 'ORDERHISTORY');
-        $datos2Form['id_estado_facturado']       = (int) Configuration::get(self::PREFIX . 'ORDERHISTORYSTATE');
+        // Fijos, non bbdd
         $datos2Form['module_override_reinstall'] = false;
         $datos2Form['module_cache_clear']        = false;
-        $datos2Form['debug_enabled']             = (bool) \Configuration::get(self::PREFIX . 'DEBUG_ENABLED');
-        $datos2Form['remove_data']               = (bool) \Configuration::get(self::PREFIX . 'REMOVE_DATA');
         $datos2Form['issjbsubmit']               = 0; // Cambiase por js
 
         $helper->identifier   = $this->identifier; // indice de this->table, neste caso  id_configuration
@@ -311,7 +320,7 @@ class sjboverrides extends Module implements WidgetInterface
 
                         'cols'             => 3,
                         'class'            => 'sjboverrides',
-                        'name'             => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+                        'name'             => 'id_order_history_state', // The content of the 'id' attribute of the <select> tag.
                         'options'          => [
                             'id'    => 'id_order_state',
                             'name'  => 'label',
@@ -331,13 +340,13 @@ class sjboverrides extends Module implements WidgetInterface
     // Override imageManager
     public function getFormImages()
     {
-        // Cargar imaxes disponibles 
+        // Cargar imaxes disponibles
 
         /*Tamaños de imaxe*/
 		$this->list_imagesizes = array();
 		$imagelist = ImageType::getImagesTypes(null, true); // $type = null, $order_by_size = false
         // $this->list_imagesizes[] = array('id_image_type' => 0, 'name' => $this->l('No mostrar'));
-        
+
         foreach ($imagelist as $IL) {
             $this->list_imagesizes[] = array(
                 'id_image_type' => (int) $IL['id_image_type'],
@@ -391,7 +400,7 @@ class sjboverrides extends Module implements WidgetInterface
 
                         'cols'             => 3,
                         'class'            => 'sjboverrides',
-                        'name'             => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+                        'name'             => 'id_order_history_state', // The content of the 'id' attribute of the <select> tag.
                         'options'          => [
                             'id'    => 'id_order_state',
                             'name'  => 'label',
@@ -418,11 +427,11 @@ class sjboverrides extends Module implements WidgetInterface
             'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
             'desc'             => sprintf(
                 '%1$s <strong>%2$s</strong>.',
-                $this->l('elecciona que tipode iminaituras se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
+                $this->l('selecciona que tipo de miniaturas se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
 
             'cols'             => 3,
             'class'            => 'sjboverrides',
-            'name'             => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
+            'name'             => 'id_order_history_state', // The content of the 'id' attribute of the <select> tag.
             'options'          => [
                 'id'    => 'id_order_state',
                 'name'  => 'label',
@@ -430,7 +439,7 @@ class sjboverrides extends Module implements WidgetInterface
             ],
         ];
 
-        
+
 
 
         return $FORM;
@@ -471,30 +480,31 @@ class sjboverrides extends Module implements WidgetInterface
                             ],
                         ],
                     ],
-                    [
-                        'type'   => 'switch',
-                        'label'  => $this->l('URL Rewrite'),
-                        'desc'   => sprintf(
-                            '%1$s <strong>%2$s</strong> %3$s',
-                            $this->l('Override de '),
-                            $this->l('PS_ROUTES'),
-                            $this->l('para limpiar las URLs y eque no contengas referencia a los id\'s.')
-                        ),
-                        'name'   => 'url_rewrite',
-                        //'is_bool' => true,
-                        'values' => [
-                            [
-                                'id'    => 'url_rewrite_on',
-                                'value' => 1,
-                                'label' => $this->l('On'),
-                            ],
-                            [
-                                'id'    => 'url_rewrite_off',
-                                'value' => 0,
-                                'label' => $this->l('Off'),
-                            ],
-                        ],
-                    ],
+                   
+                    // [
+                    //     'type'   => 'switch',
+                    //     'label'  => $this->l('URL Rewrite'),
+                    //     'desc'   => sprintf(
+                    //         '%1$s <strong>%2$s</strong> %3$s',
+                    //         $this->l('Override de '),
+                    //         $this->l('PS_ROUTES'),
+                    //         $this->l('para limpiar las URLs y eque no contengas referencia a los id\'s.')
+                    //     ),
+                    //     'name'   => 'url_rewrite',
+                    //     //'is_bool' => true,
+                    //     'values' => [
+                    //         [
+                    //             'id'    => 'url_rewrite_on',
+                    //             'value' => 1,
+                    //             'label' => $this->l('On'),
+                    //         ],
+                    //         [
+                    //             'id'    => 'url_rewrite_off',
+                    //             'value' => 0,
+                    //             'label' => $this->l('Off'),
+                    //         ],
+                    //     ],
+                    // ],
 
                     [
                         'form_group_class' => 'grupo-reinstalloverrides alert-danger',
@@ -641,6 +651,7 @@ class sjboverrides extends Module implements WidgetInterface
                 'sjboverrides'       => $this->context->link->getAdminLink('AdminModules') . "&configure=sjboverrides",
                 'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
                 'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
+                'pk_themesettings'   => $this->context->link->getAdminLink('AdminModules') . "&configure=pkthemesettings",
                 'etiquetas_id'       => 1, // id_feature
 
             ],

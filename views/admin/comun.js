@@ -10,7 +10,7 @@ const el_Llonatan = () => {
     if(sjboverride_links['sjboverrides']) menuLink_sjboverrides();
     if(sjboverride_links['ps_faceted']) menuLink_Faceted();
     if(sjboverride_links['catalogo_etiquetas']) menuLink_Etiquetas();
-    // if(sjboverride_links['ps_themesettings'])menuLink_Themesettings();
+    // if(sjboverride_links['pk_themesettings'])menuLink_Themesettings();
 
 }
 
@@ -53,6 +53,19 @@ const menuLink_Etiquetas = ()=>{
     //http://ps17.lan/adminweb/index.php?controller=AdminFeatures&updatefeature=&id_feature=1&token=f1673f5d5fade39c3af971ced91a2221
     // http://ps17.lan/adminweb/index.php?controller=AdminAttributesGroups&token=533ed22c1653c655eadb11b2f6268059
     //http://ps17.lan/adminweb/index.php?controller=AdminAttributesGroups&token=533ed22c1653c655eadb11b2f6268059
+
+    const url = sjboverride_links['catalogo_etiquetas'];
+    const li = document.createElement('li');
+    li.classList.add('link-leveltwo');
+    li.innerHTML = `<a class="sjboverride-link  link-leveltwo" id="Etiquetas-link" href="${url}"><span>Etiquetas1</span></a>`;
+    const ul = document.querySelector('#subtab-AdminCatalog > ul');
+    console.group(ul);
+    ul.appendChild(li);
+}
+
+// Etiquetas de busqueda
+const menuLink_Themesettings = ()=>{
+    //https://perfumeriacuqui.com/trastienda/index.php/improve/modules/manage/action/configure/pkthemesettings?_token=wxWJTg9rBdrMenyh45Eo_Mt13ASOjMi63nXI0pzi6os
 
     const url = sjboverride_links['catalogo_etiquetas'];
     const li = document.createElement('li');
