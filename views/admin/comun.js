@@ -1,4 +1,7 @@
 
+/**
+ * Comunes en backend
+ */
 document.onreadystatechange = function () {
     if (document.readyState == "complete") {
         el_Llonatan();

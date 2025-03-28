@@ -143,6 +143,65 @@ class sjboverrides extends Module implements WidgetInterface
         return true;
     }
 
+    public function installTabs()
+    {
+        \PrestaShopLogger::addLog(__METHOD__);
+        /*
+         $tab->id_parent = 0; main tab
+         $tab->id_parent = -1; // parent -1 será invisible
+         $tab->id_parent = (int)Tab::getIdFromClassName('AdminCatalog'); // por exemplo, ou  AdminCarriers ->60
+         $improve_tab_id = (int) Tab::getIdFromClassName('IMPROVE'); //  $meutab    =  new Tab($improve_tab_id);
+         $modulestab     = (int) Tab::getIdFromClassName('AdminParentModulesSf');
+         $improve_tab    =  new Tab($improve_tab_id);
+
+         // ou se queremos que estea dentro de transporte
+         $tmp = (int)Tab::getIdFromClassName('AdminCarriers');
+         $carrierTab = new Tab($tmp);
+         $tab->id_parent = $carrierTab->id_parent; //pq AdminCarriers non e a raíz!!
+
+      */
+        $tmp         = (int) Tab::getIdFromClassName('AdminCarriers'); // por exemplo, ou  AdminCarriers ->60
+        $carrierTab  = new Tab($tmp);
+        $parentTabId = $carrierTab->id_parent; // ou colles AdminParentShipping como carrierTab!
+
+        $meusTabs = [
+            [
+                'nombre'     => $this->l('SJB Overrides'),
+                'class_name' => 'AdminSjboverridesConfig',
+                'enabled'    => 1,
+                'active'     => 1,
+            ],
+            /*[
+                'nombre'     => $this->l('SJB Carriers Http Requests'),
+                'class_name' => 'AdminSjbcarriersHttp',
+                'enabled'    => 1,
+                'active'     => 0, // not visible
+            ],*/
+        ];
+
+        foreach ($meusTabs as $i => $T) {
+            \PrestaShopLogger::addLog('Tab ' . $i);
+            $tab = new \Tab();
+            $tab->id_parent = $parentTabId;
+            $tab->module = $this->name;
+            $tab->class_name = $T['class_name'];
+            $tab->active = $T['active'];
+            $tab->enabled = $T['enabled'];
+            $tab->name = [];
+            // \PrestaShopLogger::addLog( var_export($tab, true));
+            # Lista de idiomas disponibles y activados
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $T['nombre'];
+            }
+            if (! $tab->add()) {
+                return false;
+            }
+            \PrestaShopLogger::addLog('Tab ' . $i . ' ADDED');
+        }
+        return true;
+    }
+
+
     /**
      * Pantalla de configuracion/ administración
      *
@@ -173,11 +232,6 @@ class sjboverrides extends Module implements WidgetInterface
                 \Configuration::updateValue(self::PREFIX . $upper, (int) Tools::getValue($key));
             }
 
-            // \Configuration::updateGlobalValue(self::PREFIX . 'IMAGEMANAGER', (int) Tools::getValue('image_manager'));
-            // \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORY', (int) Tools::getValue('order_history'));
-            // \Configuration::updateGlobalValue(self::PREFIX . 'ORDERHISTORYSTATE', (int) Tools::getValue('id_order_history_state'));
-            // \Configuration::updateGlobalValue(self::PREFIX . 'DEBUG_ENABLED', (int) Tools::getValue('debug_enabled'));
-            // \Configuration::updateGlobalValue(self::PREFIX . 'REMOVE_DATA', (int) Tools::getValue('remove_data'));
 
             if ((int) \Tools::getValue('module_override_reinstall')) {
                 $overrides = $this->uninstallOverrides() && $this->installOverrides();
