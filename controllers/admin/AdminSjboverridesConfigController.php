@@ -109,7 +109,7 @@
 
         // carga ddatos de configuracion
         $datos2Form = \Sjboverrides\SJB_PSTools::getInstance()->getStoredArray($this->module::PREFIX, 'general', true);
-        // var_dump($datos2Form);
+        //  var_dump($datos2Form);
         // die();
 
         // Fijos, non bbdd
@@ -143,7 +143,7 @@
 
     // override pedidos
     public function getFormPedidos(){
-
+       
         return [
             'form' => [
 
@@ -202,6 +202,71 @@
     }
 
 
+    // Para ter posibiliadde "PREGUNTAR" por producto
+    protected function   getFormOverrideProducto(){
+        
+        $form = [
+
+            'legend' => [
+                'title' => $this->l('Override Producto'),
+                'icon'  => 'icon-cog',
+            ],
+            // 'error'  => sprintf('<strong>%1$s</strong> %2$s', 'OJO', $this->l('Parámetros de configuracion y desarrollo')),
+            'input'  => [
+                [
+                    'form_group_class'=>'grupo-preguntar-porproducto',
+                    'type'     => 'select', // This is a <select> tag.
+                    'label'    => $this->l('Preguntar por producto'), // The <label> for this <select> tag.
+                    'desc'   => sprintf('%1$s <strong style="color:#c00">%2$s</strong> %3$s',
+                        $this->l('Si el'),
+                        $this->l('producto no tiene stock') ,
+                        $this->l('se muestra FORMULARIO para consultas en lugar del mensaje de STOCK AGOTADO.'),
+                    ),
+                    'cols' => 3,
+                    'class' => 'sjboverrides',
+                    'name'     => 'general_productidfeaturevalue', // The content of the 'id' attribute of the <select> tag.
+                    'options' => array(
+                        'optiongroup'=>array(
+                            'label'=>'label',
+                            'query'=>\Sjboverrides\SJB_PSTools::getInstance()->getFeatures2optgroup(),
+
+                        ),
+                        'options'=>array(
+                            'query'=>'options',
+                            'id'=>'id',
+                            'name'=>'name'
+                        )
+                    ),
+                ],
+
+                [
+                    'form_group_class' => 'grupo-estadofacturado ' . ((bool) \Configuration::get($this->module::PREFIX . 'ORDERHISTORY') ? '' : 'hidden'),
+                    'type'             => 'select',                     // This is a <select> tag.
+                    'label'            => $this->l('Estado facturado'), // The <label> for this <select> tag.
+                    'desc'             => sprintf(
+                        '%1$s <strong>%2$s</strong>.',
+                        $this->l('Define cuál es el estado FACTURADO necesario para asignar la fecha a la factura. Se asigna a la variable de config '), $this->module::PREFIX . 'ORDERHISTORYSTATE'),
+
+                    'cols'             => 3,
+                    'class'            => 'sjboverrides',
+                    'name'             => 'general_idorderhistorystate', // The content of the 'id' attribute of the <select> tag.
+                    'options'          => [
+                        'id'    => 'id_order_state',
+                        'name'  => 'label',
+                        'query' => \Sjboverrides\SJB_PSTools::getInstance()->getEstadosPedidos()
+                    ],
+                ],
+            ],
+
+            'submit' => [
+                'title' => $this->l('Save'),
+                'name'  => 'sjbSubmitConfig',
+                'class' => 'sjbsubmit btn btn-default pull-right',
+            ],
+        ];
+        // var_dump($form);
+        return ['form'=>$form];
+    }
 
 
     // Para usar a miña rutina de imaxes chula (ao rexenerar)

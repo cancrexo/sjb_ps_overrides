@@ -32,11 +32,11 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'image_manager'             => [0,],
-        'product_idfeaturevalue'    => [0],
+        'image_manager'             => [-1,],
+        'product_idfeaturevalue'    => [-1],
         'order_history'             => [0],
+        'id_order_history_state'    => [-1],
         'url_rewrite'               => [0],
-        'id_order_history_state'    => [],
         'debug_enabled'             => [1],
         'remove_data'               => [1],
     ];

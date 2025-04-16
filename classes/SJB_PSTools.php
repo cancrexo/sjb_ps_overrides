@@ -80,7 +80,7 @@ class SJB_PSTools{
                 'options' => array()
             );
             // Values
-            $values = \FeatureValue::getFeatureValuesWithLang($feature['id_feature'], $this->context->language->id);
+            $values = \FeatureValue::getFeatureValuesWithLang( $this->context->language->id, $feature['id_feature'],);
             foreach($values as $value){
                 $list_features[count($list_features)-1]['options'][] = array(
                 'id' => $value['id_feature_value'],
@@ -88,6 +88,7 @@ class SJB_PSTools{
                 );
             }
         }
+       
         return $list_features;
 
     }
