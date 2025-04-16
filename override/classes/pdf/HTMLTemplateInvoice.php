@@ -2,7 +2,7 @@
 <?php
 /**
  *
- * Quero o codigo de desconto na factura cohone!
+ * Necesitamos añadir codigo de desconto empleado en fapedido, a hra de sacar unha factura
  */
 class HTMLTemplateInvoice extends HTMLTemplateInvoiceCore
 {

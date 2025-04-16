@@ -1,10 +1,12 @@
 
 // Scripts de controller
 
+
+// Gestiona visibilidad de select en override  orderHistory
 document.addEventListener('DOMContentLoaded', ()=> {
 
    const select_estado_facturado = document.querySelector('.form-group.grupo-estadofacturado');
-   const switch_estado_facturado = document.querySelectorAll('input[name="order_history"]');
+   const switch_estado_facturado = document.querySelectorAll('input[name="general_orderhistory"]');
    // Iterar sobre cada botón de radio y agregar el detector de eventos
    switch_estado_facturado.forEach((radioButton) => {
       radioButton.addEventListener('change', (event) => {
@@ -13,8 +15,6 @@ document.addEventListener('DOMContentLoaded', ()=> {
          valor ? select_estado_facturado.classList.remove('hidden') : select_estado_facturado.classList.add('hidden');
       });
    });
-
-
 
    console.log(switch_estado_facturado);
    console.log(select_estado_facturado);
