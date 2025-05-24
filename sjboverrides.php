@@ -503,10 +503,16 @@ class sjboverrides extends Module implements WidgetInterface
             <!-- ( smarty metodo 2) Call with a hook name -->
             {widget name='<module_name>' hook='<hook_name>'}
 
-        */
 
-    // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
-    //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
+        Lembra
+        Si enganchas o modulo nun hook calquera no backend, si o modulo non ten ese metodo hook definido
+        enton sempre pasa por renderWidget e amosarase a no ser que discrimines por metodo 2 (hook name)
+
+        Para máis info, consulta a documentación oficial de PrestaShop sobre widgets:
+        https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
+
+     */
+
     public function renderWidget($hookName = null, array $configuration = [])
     {
 
