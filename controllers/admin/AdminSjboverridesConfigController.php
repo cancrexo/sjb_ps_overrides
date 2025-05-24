@@ -57,6 +57,7 @@
         parent::initProcess(); //-->define valor de display!!
         // agora defino as miñas views:
 
+       
         if ( !$this->ajax)
             $this->display = 'edit';
     }
@@ -86,8 +87,11 @@
             //     $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
             // }
 
-            $this->_html .= $this->displayConfirmation($this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin'));
+            $this->_html .= $this->module->displayConfirmation($this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin'));
         }
+
+        parent::postProcess();
+        
     } // postProcess
 
 
@@ -118,9 +122,8 @@
         $datos2Form['issjbsubmit']               = 0; // Cambiase por js
 
         $helper->identifier   = $this->identifier; // indice de this->table, neste caso  id_configuration
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-        . '&configure=' . $this->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name;
-        $helper->token = \Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminSjboverridesConfig', false);
+        $helper->token = \Tools::getAdminTokenLite('AdminSjboverridesConfig');
 
         $helper->tpl_vars = [
             'fields_value' => $datos2Form, //$this->config,
@@ -136,14 +139,16 @@
                 $this->getFormOverrideProducto(),
                 // $this->getFormOverrideReinstalls(),
                 $this->getFormDebug(),
+
+               
             ]
-        );
+        ) .   $this->getInstructions();
 
     }
 
     // override pedidos
     public function getFormPedidos(){
-       
+
         return [
             'form' => [
 
@@ -204,7 +209,7 @@
 
     // Para ter posibiliadde "PREGUNTAR" por producto
     protected function   getFormOverrideProducto(){
-        
+
         $form = [
 
             'legend' => [
@@ -312,7 +317,7 @@
         ];
     }
 
-    // Forumlario debug e config
+    // Formulario debug e config
     public function getFormDebug(){
 
         $form=[
@@ -425,7 +430,7 @@
     public function getInstructions(){
 
         return  $this->context->smarty->fetch(
-            $this->module->getLocalPath() . 'views/templates/admin/instructions.tpl');
+            $this->module->getLocalPath() . 'views/templates/admin/info-plugin.tpl');
     }
 
 

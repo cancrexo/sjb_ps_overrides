@@ -270,7 +270,7 @@ class sjboverrides extends Module implements WidgetInterface
      * Pantalla de configuracion/ administración
      */
     public function getContent(){
-		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfigController'));
+		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfig'));
 	}
 
 
@@ -420,6 +420,13 @@ class sjboverrides extends Module implements WidgetInterface
 
         return $FORM;
     }
+
+ 
+
+
+
+
+
     /*
           _   _                   _
          | | | |   ___     ___   | | __  ___
@@ -431,12 +438,24 @@ class sjboverrides extends Module implements WidgetInterface
     */
 
 
+    // Css e js comuns en todo o backend
     public function hookActionAdminControllerSetMedia($params){
-        // Css e js comuns en todo o backedn
+       
+        // Variable global js
+        $tojs = ['sjboverride_links' =>
+            [
 
+                'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
+                'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
+                'etiquetas_id'       => 1, // id_feature
+                'ps_logs'            => Tools::getShopDomainSsl(true) . __PS_BASE_URI__ . ltrim($this->context->link->getAdminLink('AdminLogs'), '/'),
+
+            ],
+        ];
+        Media::addJsDef($tojs);
     }
 
-    // Pasalom a widget
+    // Pasalo a widget
     public function hookActionOrderStatusPostUpdate($params)
     {
         /*

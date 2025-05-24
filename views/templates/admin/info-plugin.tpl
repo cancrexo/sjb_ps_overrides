@@ -17,7 +17,7 @@
       </li>
       <li>Hooks incluidos<br>
          <ol >
-          <li>Hook <strong>hookActionOrderStatusPostUpdate</strong> para asignar Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable <strong>{$moduleprefix}ESTADO_FACTURADO</strong></li>
+          <li>Hook <strong>hookActionOrderStatusPostUpdate</strong> para asignar Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable <strong>ESTADO_FACTURADO</strong></li>
          </ol>
          </li>
       </ul>
