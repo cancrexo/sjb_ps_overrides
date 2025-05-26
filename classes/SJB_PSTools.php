@@ -8,6 +8,7 @@ namespace Sjboverrides;
 
 class SJB_PSTools{
 
+    const version = '4.0';
     private static $instancia;
 
     static
@@ -23,7 +24,7 @@ class SJB_PSTools{
 
     public function __construct(){
         $this->context = \Context::getContext();
-        $this->context->smarty->assign('sjboverrides', array('version' => '1.0'));
+        $this->context->smarty->assign('sjboverrides', ['version' => static::version]);
     }
 
 
