@@ -1,6 +1,6 @@
 <?php
 
-// Clase
+use \Sjboverrides\SJB_PSTools;
 
  class AdminSjboverridesConfigController extends ModuleAdminController{
 
@@ -57,7 +57,6 @@
         parent::initProcess(); //-->define valor de display!!
         // agora defino as miñas views:
 
-       
         if ( !$this->ajax)
             $this->display = 'edit';
     }
@@ -87,11 +86,8 @@
             //     $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
             // }
 
-            $this->_html .= $this->module->displayConfirmation($this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin'));
+            $this->_html .= $this->displayConfirmation($this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin'));
         }
-
-        parent::postProcess();
-        
     } // postProcess
 
 
@@ -112,7 +108,7 @@
         // \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
 
         // carga ddatos de configuracion
-        $datos2Form = \Sjboverrides\SJB_PSTools::getInstance()->getStoredArray($this->module::PREFIX, 'general', true);
+        $datos2Form = SJB_PSTools::getInstance()->getStoredArray($this->module::PREFIX, 'general', true);
         //  var_dump($datos2Form);
         // die();
 
@@ -122,8 +118,9 @@
         $datos2Form['issjbsubmit']               = 0; // Cambiase por js
 
         $helper->identifier   = $this->identifier; // indice de this->table, neste caso  id_configuration
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminSjboverridesConfig', false);
-        $helper->token = \Tools::getAdminTokenLite('AdminSjboverridesConfig');
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+        . '&configure=' . $this->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name;
+        $helper->token = \Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = [
             'fields_value' => $datos2Form, //$this->config,
@@ -139,10 +136,8 @@
                 $this->getFormOverrideProducto(),
                 // $this->getFormOverrideReinstalls(),
                 $this->getFormDebug(),
-
-               
             ]
-        ) .   $this->getInstructions();
+        );
 
     }
 
@@ -193,7 +188,7 @@
                         'options'          => [
                             'id'    => 'id_order_state',
                             'name'  => 'label',
-                            'query' => \Sjboverrides\SJB_PSTools::getInstance()->getEstadosPedidos()
+                            'query' => SJB_PSTools::getInstance()->getEstadosPedidos()
                         ],
                     ],
                 ],
@@ -233,7 +228,7 @@
                     'options' => array(
                         'optiongroup'=>array(
                             'label'=>'label',
-                            'query'=>\Sjboverrides\SJB_PSTools::getInstance()->getFeatures2optgroup(),
+                            'query'=>SJB_PSTools::getInstance()->getFeatures2optgroup(),
 
                         ),
                         'options'=>array(
@@ -258,7 +253,7 @@
                     'options'          => [
                         'id'    => 'id_order_state',
                         'name'  => 'label',
-                        'query' => \Sjboverrides\SJB_PSTools::getInstance()->getEstadosPedidos()
+                        'query' => SJB_PSTools::getInstance()->getEstadosPedidos()
                     ],
                 ],
             ],
@@ -317,7 +312,7 @@
         ];
     }
 
-    // Formulario debug e config
+    // Forumlario debug e config
     public function getFormDebug(){
 
         $form=[
@@ -430,7 +425,7 @@
     public function getInstructions(){
 
         return  $this->context->smarty->fetch(
-            $this->module->getLocalPath() . 'views/templates/admin/info-plugin.tpl');
+            $this->module->getLocalPath() . 'views/templates/admin/instructions.tpl');
     }
 
 

@@ -270,7 +270,7 @@ class sjboverrides extends Module implements WidgetInterface
      * Pantalla de configuracion/ administración
      */
     public function getContent(){
-		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfig'));
+		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfigController'));
 	}
 
 
@@ -420,13 +420,6 @@ class sjboverrides extends Module implements WidgetInterface
 
         return $FORM;
     }
-
- 
-
-
-
-
-
     /*
           _   _                   _
          | | | |   ___     ___   | | __  ___
@@ -438,24 +431,12 @@ class sjboverrides extends Module implements WidgetInterface
     */
 
 
-    // Css e js comuns en todo o backend
     public function hookActionAdminControllerSetMedia($params){
-       
-        // Variable global js
-        $tojs = ['sjboverride_links' =>
-            [
+        // Css e js comuns en todo o backedn
 
-                'ps_faceted'         => $this->context->link->getAdminLink('AdminModules') . "&configure=ps_facetedsearch",
-                'catalogo_etiquetas' => $this->context->link->getAdminLink('AdminFeatures') . "&viewfeature&id_feature=8",
-                'etiquetas_id'       => 1, // id_feature
-                'ps_logs'            => Tools::getShopDomainSsl(true) . __PS_BASE_URI__ . ltrim($this->context->link->getAdminLink('AdminLogs'), '/'),
-
-            ],
-        ];
-        Media::addJsDef($tojs);
     }
 
-    // Pasalo a widget
+    // Pasalom a widget
     public function hookActionOrderStatusPostUpdate($params)
     {
         /*
@@ -522,16 +503,10 @@ class sjboverrides extends Module implements WidgetInterface
             <!-- ( smarty metodo 2) Call with a hook name -->
             {widget name='<module_name>' hook='<hook_name>'}
 
+        */
 
-        Lembra
-        Si enganchas o modulo nun hook calquera no backend, si o modulo non ten ese metodo hook definido
-        enton sempre pasa por renderWidget e amosarase a no ser que discrimines por metodo 2 (hook name)
-
-        Para máis info, consulta a documentación oficial de PrestaShop sobre widgets:
-        https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
-
-     */
-
+    // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
+    //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
     public function renderWidget($hookName = null, array $configuration = [])
     {
 

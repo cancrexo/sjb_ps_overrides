@@ -14,9 +14,7 @@
        "psr-4": {
            "Sjboverrides\\": "src/"
        },
-       "classmap": [
-           "classes/"
-       ],
+       "classmap": [],
        "exclude-from-classmap": []
    },
    "config": {

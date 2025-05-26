@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', ()=> {
 
 });
 
-// baseAdminDir -->variable prestahop
+//   if (document.readyState === "interactive" || document.readyState === "complete" ) {
+        // baseAdminDir -->variable prestahop
 
 
