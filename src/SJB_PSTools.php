@@ -8,7 +8,7 @@ namespace Sjboverrides;
 
 class SJB_PSTools{
 
-    const version = '4.0';
+    const version = '2.0';
 
     private static $instancia;
 
