@@ -163,6 +163,7 @@ class sjboverrides extends Module implements WidgetInterface
                 'class_name' => 'AdminSjboverridesConfig',
                 'enabled'    => 1,
                 'active'     => 1,
+                'icon' => '',
             ],
             /*[
                 'nombre'     => $this->l('SJB Carriers Http Requests'),
@@ -200,8 +201,12 @@ class sjboverrides extends Module implements WidgetInterface
         //$tab->id_parent = $parent_tab ? $parent_tab->id : (isset($T['parent_tab']) ? $T['parent_tab'] : 0); // parent -1 será invisile
         $tab->class_name = $T['class_name'];
         $tab->id_parent = $parent_tab ? $parent_tab->id : 0; // parent -1 será invisile
-
         $tab->module = isset($T['module']) ? $T['module'] : $this->name;
+        
+        // Agregar soporte para iconos
+        if (isset($T['icon'])) {
+            $tab->icon = $T['icon'];
+        }
 
         if (!$tab->add()) {
             PrestaShopLogger::addLog(__method__ .': Error añadiendo tab('.$tab->class_name . ')', 3);
@@ -433,7 +438,7 @@ class sjboverrides extends Module implements WidgetInterface
 
     public function hookActionAdminControllerSetMedia($params){
         // Css e js comuns en todo o backedn
-
+        $this->context->controller->addCSS( $this->_path . 'views/admin/comun.css', 'all' );
     }
 
     // Pasalom a widget
