@@ -209,19 +209,23 @@ class SJB_PSTools{
 
 
    /**
-    * Método para leer os datos dos parametros de configuracion
-    * O noem da clave de configiracion será: PREFIXO_MODULO_array_prefix_config
+    * Método para leer os datos dos parametros de configuracion e devolver un array coas claves=>>valores
+    * O nome da clave de configuracion será: PREFIXO_MODULO_array_prefix_config
     * Por exempo:
-        SJBOVERRIDES_general_config  ==> MODULOE.::PREFIX . $array_prefix .'config'
-    * será PREFIXO_nomede carray:
+    *   - SJBOVERRIDES_general_config (==> MODULE::PREFIX . $array_prefix .'config')
+    *   - SJBOVERRIDES_ticket_config
+    *   etc.
+    *
     * Recibe:
     *  - prefixo do modulo
     *  - prefixo da variable (pode haber varios grupos para 1 modulo)
-    *  - add_prefix=true --> añade o prefixo ás claves (caso renderForm evitar colisión en nomes)
+    *  - add_prefix=true --> añade o prefixo ás claves (caso renderForm evitar colisión en nomes) xa que se 
+    *    usan para o nome dos campos!!
     *
     */
     public function getStoredArray( $module_prefix = '_mimodule_', $array_prefix = 'ahilollevas_', $add_prefix = true ){
 
+        \PrestaShopLogger::addLog(__method__);
         $_config = []; // Configuracion a devolver
         if(strlen($module_prefix) && substr($module_prefix, -1) != '_')$module_prefix .= '_'; // añade _
         if(strlen($array_prefix) && substr($array_prefix, -1) != '_')$array_prefix .= '_'; // añade _
@@ -232,6 +236,7 @@ class SJB_PSTools{
             P.e, para ticket_ a clase deberá ter unha propiedade que se chame ticket_config_keys
         */
         $config2load = $module_prefix.$array_prefix.'config'; // p.e  cargará da tabla configuracion APOS_ticket_config
+        \PrestaShopLogger::addLog('clave de configuracion a cargar: ' . $config2load);
 
         $stored_config = (array)\Tools::jsonDecode(\Configuration::get( $config2load), true); // true pq queres array asociativo!!
         // var_dump($config2load);
@@ -246,18 +251,22 @@ class SJB_PSTools{
     }
 
     /**
-    * Método para validar e grabar os  datos dos parametros de configuracion
-    * Recibe:
-    * - module_prefix : prefixo do modulo (p.e.  CONFIG_PREFIX)
-    * - array_prefix : prefixo do array: p.e tickets, general, etc co que o nome de clave na bbdd seria p.e, {CONFIG_PREFIX}miclave
-    * - config_keys : array con as claves a validar e almacenar e ques emeten en {CONFIG_PREFIX}miclave
-    *- $ste e referencia ao controller/modulo que chama a isot
-    *      LEMBRA QUE VES POR POST MONA!!!!!
-    *
-    */
+     * Método para validar e grabar os  datos dos parametros de configuracion
+     * Recibe:
+     * - module_prefix : prefixo do modulo (p.e.  SJBOVERRIDE)
+     * - array_prefix : prefixo do array: p.e tickets, general, etc co que o nome de clave na bbdd seria p.e,
+     *
+     *    SJBOVERRIDES_general (antes de grabar engadelle _config ao final!!)
+     *
+     *- config_keys : array con as claves a validar e almacenar e ques emeten en {CONFIG_PREFIX}miclave
+     *- $este e referencia ao controller/modulo que chama a isot
+     *      LEMBRA QUE VES POR POST MONA!!!!!
+     *
+     */
     public  function setStoredArray($data, $module_prefix='', $array_prefix = null, $config_keys= null, &$este = null){
 
-        error_log('la cona josito');
+        PrestaShopLogger::addLog(__method__);
+        
         $_config = []; // Configuracion a devolver??
 
         if(strlen($module_prefix) && substr($module_prefix, -1) != '_')$module_prefix .= '_';
@@ -269,7 +278,6 @@ class SJB_PSTools{
         /*
             Definimos nome  da variable de esta clase que almacena as claves  configuracion
             para este prefixo
-            P.e, para ticket_ a clase deberá ter unha propiedade que se chame ticket_config_keys
         */
         $config2Store = $module_prefix . $array_prefix.'config';
 

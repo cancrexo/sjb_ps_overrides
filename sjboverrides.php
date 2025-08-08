@@ -32,13 +32,17 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'image_manager'             => [-1,],
-        'product_idfeaturevalue'    => [-1],
-        'order_history'             => [0],
-        'id_order_history_state'    => [-1],
-        'url_rewrite'               => [0],
-        'debug_enabled'             => [1],
-        'remove_data'               => [1],
+        'hook_image_manager'            => [-1,], // si o hook esta activado ()
+
+        'hook_preguntar_producto'       => [0], // si o hook esta activado
+        'product_idfeaturevalue'        => [-1],
+
+        'hook_order_history_active'     => [0], // si o hook esta activado
+        'id_order_history_state'        => [-1],
+
+        'url_rewrite'                   => [0], // si o hook esta activado
+        'debug_enabled'                 => [1],
+        'remove_data'                   => [1],
     ];
 
     public
@@ -51,7 +55,7 @@ class sjboverrides extends Module implements WidgetInterface
 
     static $debugEnabled = true;
 
-
+    // Quita underscores
     static function myreplace($str){
         $limpia = strtolower(str_ireplace(array('_'), '', $str));
         return $limpia;
@@ -94,7 +98,7 @@ class sjboverrides extends Module implements WidgetInterface
 
         error_log('instalar');
 
-        static::debug($this->name . ' INSTALL');
+        \PrestaShopLogger::addLog(__METHOD__);
 
         if (! parent::install()) {
             static::debug("Error en parent_install");
@@ -105,18 +109,27 @@ class sjboverrides extends Module implements WidgetInterface
             return false;
         }
 
-        foreach ($this->_hooks as $hook) {
-            if (! $this->registerHook($hook)) {
-                static::debug("Error en Hook $hook");
-                return false;
-            }
-            static::debug("Hook $hook OK");
+        // Instalamos hooks:
+        if(!$this->install_hooks()){
+            return false;
         }
+        \PrestaShopLogger::addLog('Hooks  OK');
+
 
         return $this->defaultValues(); // trivial!
     }
 
 
+    public function install_hooks(){
+
+        foreach ($this->_hooks as $hook) {
+            if (! $this->registerHook($hook)) {
+                static::debug("Error en Hook $hook");
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Valores por defecto
@@ -131,10 +144,35 @@ class sjboverrides extends Module implements WidgetInterface
             $key = static::myreplace($key);
             $_config[$key] = reset($value);
         }
-        \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+        // \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+        $this->saveData('general', $_config);
         \PrestaShopLogger::addLog('Fin default values');
         return true;
     }
+
+
+
+
+    /**
+     * Carga a configuracio que lle indiques
+     *
+     * @param [type] $key
+     * @return ARRAY
+     */
+    public function getData( $key='general', $add_prefix = true) {
+        return \Sjboverrides\SJB_PSTools::getInstance()->getStoredArray(static::PREFIX, $key,  $add_prefix);
+    }
+
+
+
+
+    public function saveData($key, $data){
+
+        \Configuration::updateValue(static::PREFIX . $key.'_config' ,  \Tools::jsonEncode($data, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+    }
+
+
+
 
     public function installTabs() {
         \PrestaShopLogger::addLog(__METHOD__);
@@ -270,7 +308,7 @@ class sjboverrides extends Module implements WidgetInterface
 
 
     /**
-     * Pantalla de configuracion/ administración
+     * Pantalla de configuracion/ administración -->CONTROLLERR
      */
     public function getContent(){
 		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfig'));
@@ -318,8 +356,7 @@ class sjboverrides extends Module implements WidgetInterface
 
 
     // Override imageManager **aproveitar
-    public function getFormImagesold()
-    {
+    public function getFormImagesold(){
         // Cargar imaxes disponibles
 
         /*Tamaños de imaxe*/
@@ -375,7 +412,7 @@ class sjboverrides extends Module implements WidgetInterface
                         'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
                         'desc'             => sprintf(
                             '%1$s <strong>%2$s</strong>.',
-                            $this->l('elecciona que tipode iminaituras se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
+                            $this->l('Selecciona que tipo de miniaturas se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
 
                         'cols'             => 3,
                         'class'            => 'sjboverrides',
@@ -436,14 +473,21 @@ class sjboverrides extends Module implements WidgetInterface
 
     public function hookActionAdminControllerSetMedia($params){
         // Css e js comuns en todo o backedn
-      
+
         $this->context->controller->addCSS( $this->_path . 'views/admin/comun.css', 'all' );
     }
 
 
     // Pasalom a widget
-    public function hookActionOrderStatusPostUpdate($params)
-    {
+    /**
+     * Grestionamos o feito de que rpestasgop asigna fecha da factura á fecha do pedidoUndocumented function
+     *
+     * Asignamos fecha da factura cando o pedido pasa o estado definido como FACTURADO
+     *
+     * @param [type] $params
+     * @return void
+     */
+    public function hookActionOrderStatusPostUpdate($params){
         /*
             $params array(
             'newOrderStatus' => (object) OrderState,

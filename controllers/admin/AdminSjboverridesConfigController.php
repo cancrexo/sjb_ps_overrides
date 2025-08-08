@@ -63,42 +63,62 @@ use \Sjboverrides\SJB_PSTools;
 
 
 
-
+    // Procesado formulario
     public function postProcess() {
 
-        // die(__file__);
-        // var_dump($_REQUEST);
         if (\Tools::isSubmit('sjbSubmitConfig')) {
 
-                              // arrays are not assigned by reference!
             $formvalues = []; // array with sanitized values
 
-            // foreach($this->config as $key=> $value) {
-            //     $upper = static::myreplace($key);
-            //     \Configuration::updateValue($this->module::PREFIX . $upper, (int) Tools::getValue($key));
-            // }
+            // General (con prefijo "general_" en todas as claves)
+            $this->config = $this->module->getData('general'); // Leense co prefixo "general_" incluid nas claves pq no POST veñen con el!!OSTIAS
+
+            foreach($this->config as $key=> $previo) {
+                $valor =\Tools::getValue($key, $previo); // getValue($key, $default_value)
+                // $this->_html .= "$key =>$valor <br>";
+                $formvalues[$key] =  $valor != $previo ? $valor : $previo; // si non cambia mantén o valor previo
+            }
 
 
-            // if ((int) \Tools::getValue('module_override_reinstall')) {
-            //     $overrides = $this->uninstallOverrides() && $this->installOverrides();
-            //     $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Overrides resintalados OK', [], 'Modules.Sjboverrides.Admin')));
-            // }
+            // Eliminar el prefijo 'general_' de todas las claves del array formValues
+            $formvalues = array_combine(
+                array_map(function($key) {
+                    return str_ireplace('general_', '', $key);
+                }, array_keys($formvalues)),
+                array_values($formvalues)
+            );
 
-            // if ((int) \Tools::getValue('module_cache_clear')) {
-            //     $this->vaciaCache();
-            //     $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
-            // }
-            $this->confirmations[] = $this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin');
+            // Grabar
+            $this->module->saveData('general', $formvalues);
+
+
+            if ((int) \Tools::getValue('module_override_reinstall')) {
+                $overrides = $this->module->uninstallOverrides() && $this->module->installOverrides();
+                $this->confirmations[] = $this->trans('OVERRIDES reinstalados OK.<br>', [], 'Modules.Sjboverrides.Admin');
+            }
+
+            if ((int) \Tools::getValue('module_hooks_reinstall')) {
+                $reinstalados = $this->module->install_hooks();
+                if($reinstalados === false){
+                    $this->errors[] = $this->trans('HOOKS no reinstalados.<br>', [], 'Modules.Sjboverrides.Admin');
+                } else {
+                    $this->confirmations[] = $this->trans('HOOKS reinstalados OK.<br>', [], 'Modules.Sjboverrides.Admin');
+                }
+            }
+
+
+            if ((int) \Tools::getValue('module_cache_clear')) {
+                $this->vaciaCache();
+                // $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
+                 $this->confirmations[] =$this->trans('Cache vaciado.<br>', [], 'Modules.Sjboverrides.Admin');
+            }
+            $this->confirmations[] = $this->trans('Configuracion de modulo actualizada.<br>', [], 'Modules.Sjboverrides.Admin');
 
         }
     } // postProcess
 
 
 
-    public function renderView()
-    {
-        return $this->_html . $this->renderForm();
-    }
    /**
      * Formulario
      */
@@ -114,26 +134,25 @@ use \Sjboverrides\SJB_PSTools;
         // \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
 
         // carga ddatos de configuracion
-        $datos2Form = SJB_PSTools::getInstance()->getStoredArray($this->module::PREFIX, 'general', true);
-        //  var_dump($datos2Form);
-        // die();
+        // $datos2Form = $this->module->getData('general');
+        $this->config = $this->module->getData('general');
 
         // Fijos, non bbdd
-        $datos2Form['module_override_reinstall'] = false;
-        $datos2Form['module_cache_clear']        = false;
-        $datos2Form['issjbsubmit']               = 0; // Cambiase por js
-
+        $this->config['module_override_reinstall'] = false;
+        $this->config['module_hooks_reinstall']     = false;
+        $this->config['module_cache_clear']        = false;
+        $this->config['issjbsubmit']               = 0; // Cambiase por js
         $helper->identifier   = $this->identifier; // indice de this->table, neste caso  id_configuration
         $helper->currentIndex = $this->context->link->getAdminLink('AdminSjboverridesConfig');
         $helper->token = \Tools::getAdminTokenLite('AdminSjboverridesConfig');
 
         $helper->tpl_vars = [
-            'fields_value' => $datos2Form, //$this->config,
+            'fields_value' => $this->config, //$this->config,
             'languages'    => $this->getLanguages(),
             'id_language'  => $this->context->language->id,
         ];
 
-        return $helper->generateForm(
+        $el_llonatan =  $helper->generateForm(
             [
                 // $this->getFormOverrideImages(),
                 $this->getFormPedidos(),
@@ -143,6 +162,9 @@ use \Sjboverrides\SJB_PSTools;
                 $this->getFormDebug(),
             ]
         );
+
+        $this->context->smarty->assign('DATA', $this->config);
+        return $this->_html . $el_llonatan . $this->getInstructions() . $this->getDebugData() ;
 
     }
 
@@ -165,10 +187,10 @@ use \Sjboverrides\SJB_PSTools;
                             $this->l('Facturas'),
                             $this->l('Se asigna la Fecha de factura cuado esta se genere y no con la fecha del pedido. Al activarlo se define la variable ') . '<b>' . $this->module::PREFIX . 'ESTADO_FACTURADO</b>.'
                         ),
-                        'name'   => 'general_orderhistory',
+                        'name'   => 'general_hookorderhistoryactive',
                         'values' => [
                             [
-                                'id'    => 'ESTADO_FACTURADO',
+                                'id'    => 'order_history_on',
                                 'value' => 1,
                                 'label' => $this->l('On'),
                             ],
@@ -219,14 +241,32 @@ use \Sjboverrides\SJB_PSTools;
             // 'error'  => sprintf('<strong>%1$s</strong> %2$s', 'OJO', $this->l('Parámetros de configuracion y desarrollo')),
             'input'  => [
                 [
-                    'form_group_class'=>'grupo-preguntar-porproducto',
-                    'type'     => 'select', // This is a <select> tag.
-                    'label'    => $this->l('Preguntar por producto'), // The <label> for this <select> tag.
+                    'type'   => 'switch',
+                    'label'  => $this->l('Preguntar por producto'),
                     'desc'   => sprintf('%1$s <strong style="color:#c00">%2$s</strong> %3$s',
                         $this->l('Si el'),
                         $this->l('producto no tiene stock') ,
                         $this->l('se muestra FORMULARIO para consultas en lugar del mensaje de STOCK AGOTADO.'),
                     ),
+                    'name'   => 'general_hookpreguntarproducto',
+                    'values' => [
+                        [
+                            'id'    => 'preguntar_on',
+                            'value' => 1,
+                            'label' => $this->l('On'),
+                        ],
+                        [
+                            'id'    => 'preguntar_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+                [
+                    'form_group_class'=>'grupo-preguntar-porproducto ' . ((int)$this->config['general_hookpreguntarproducto'] ? '' : 'hidden'),
+                    'type'     => 'select', // This is a <select> tag.
+                    'label'    => $this->l('Característica'), // The <label> for this <select> tag.
+                    'desc'   => $this->l('Selecciona la característica que activa el formulario .'),
                     'cols' => 3,
                     'class' => 'sjboverrides',
                     'name'     => 'general_productidfeaturevalue', // The content of the 'id' attribute of the <select> tag.
@@ -244,24 +284,9 @@ use \Sjboverrides\SJB_PSTools;
                     ),
                 ],
 
-                [
-                    'form_group_class' => 'grupo-estadofacturado ' . ((bool) \Configuration::get($this->module::PREFIX . 'ORDERHISTORY') ? '' : 'hidden'),
-                    'type'             => 'select',                     // This is a <select> tag.
-                    'label'            => $this->l('Estado facturado'), // The <label> for this <select> tag.
-                    'desc'             => sprintf(
-                        '%1$s <strong>%2$s</strong>.',
-                        $this->l('Define cuál es el estado FACTURADO necesario para asignar la fecha a la factura. Se asigna a la variable de config '), $this->module::PREFIX . 'ORDERHISTORYSTATE'),
-
-                    'cols'             => 3,
-                    'class'            => 'sjboverrides',
-                    'name'             => 'general_idorderhistorystate', // The content of the 'id' attribute of the <select> tag.
-                    'options'          => [
-                        'id'    => 'id_order_state',
-                        'name'  => 'label',
-                        'query' => SJB_PSTools::getInstance()->getEstadosPedidos()
-                    ],
-                ],
             ],
+
+
 
             'submit' => [
                 'title' => $this->l('Save'),
@@ -328,6 +353,7 @@ use \Sjboverrides\SJB_PSTools;
             ],
             'error'  => sprintf('<strong>%1$s</strong> %2$s', 'OJO', $this->l('Parámetros de configuracion y desarrollo')),
             'input'  => [
+
                 [
                     'form_group_class' => 'grupo-clearcache ',
                     'type'             => 'switch',
@@ -346,6 +372,27 @@ use \Sjboverrides\SJB_PSTools;
                             'label' => $this->l('Off'),
                         ]],
                 ],
+
+                [
+                    'form_group_class' => 'grupo-reinstallHook alert-warning',
+                    'type'             => 'switch',
+                    'label'            => sprintf('<span style="color:#c00">%1$s</span> %2$s', $this->l('REINSTALL'), $this->l('Hooks')),
+                    'desc'             => sprintf('<em style="color:#001">%1$s</em>', $this->l('Fuerza la reinstalacion de TODOS los HOOKS de este  plugin.')),
+                    'name'             => 'module_hooks_reinstall',
+                    'values'           => [
+                        [
+                            'id'    => 'hooks_reinstall_on',
+                            'value' => 1,
+                            'label' => $this->l('Ejecutar'),
+                        ],
+                        [
+                            'id'    => 'hooks_reinstall_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+
                 [
                     'type'   => 'switch',
                     'label'  => $this->l('Debug Mode'),
@@ -430,20 +477,25 @@ use \Sjboverrides\SJB_PSTools;
     public function getInstructions(){
 
         return  $this->context->smarty->fetch(
-            $this->module->getLocalPath() . 'views/templates/admin/instructions.tpl');
+            $this->module->getLocalPath() . 'views/templates/admin/info-plugin.tpl');
     }
 
 
+    public function getDebugData(){
 
+        return  $this->context->smarty->fetch(
+            $this->module->getLocalPath() . 'views/templates/admin/debug.tpl');
+
+    }
 
     public function vaciaCache()
     {
-        static::debug('Borrando cache prestashop', 2);
+        $this->module::debug('Borrando cache prestashop', 2);
         \Tools::clearSmartyCache();
         \Tools::clearXMLCache();
         \Media::clearCache();
         \Tools::generateIndex();
-        static::debug('cache prestashop borrado', 2);
+        $this->module::debug('cache prestashop borrado', 2);
     }
 
 
