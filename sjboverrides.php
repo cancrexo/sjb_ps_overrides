@@ -131,8 +131,6 @@ class sjboverrides extends Module implements WidgetInterface
             $key = static::myreplace($key);
             $_config[$key] = reset($value);
         }
-
-        \PrestaShopLogger::addLog('Confiemos');
         \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
         \PrestaShopLogger::addLog('Fin default values');
         return true;
@@ -202,7 +200,7 @@ class sjboverrides extends Module implements WidgetInterface
         $tab->class_name = $T['class_name'];
         $tab->id_parent = $parent_tab ? $parent_tab->id : 0; // parent -1 será invisile
         $tab->module = isset($T['module']) ? $T['module'] : $this->name;
-        
+
         // Agregar soporte para iconos
         if (isset($T['icon'])) {
             $tab->icon = $T['icon'];
@@ -438,8 +436,10 @@ class sjboverrides extends Module implements WidgetInterface
 
     public function hookActionAdminControllerSetMedia($params){
         // Css e js comuns en todo o backedn
+      
         $this->context->controller->addCSS( $this->_path . 'views/admin/comun.css', 'all' );
     }
+
 
     // Pasalom a widget
     public function hookActionOrderStatusPostUpdate($params)
