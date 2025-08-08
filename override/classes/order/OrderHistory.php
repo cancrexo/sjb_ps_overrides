@@ -27,6 +27,7 @@ class OrderHistory extends OrderHistoryCore
      */
     public function changeIdOrderState($new_order_state, $id_order, $use_existing_payment = false)
     {
+        // \PrestaShopLogger::addLog(__method__);
 
         if (!Module::isEnabled('sjboverrides') || !($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))) {
             return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);
@@ -38,14 +39,16 @@ class OrderHistory extends OrderHistoryCore
             return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);
         }*/
 
-        $SJBOVERRIDES::debug(__method__ ); // prestahop logger que podes desactivar no propio modulo
+        $SJBOVERRIDES::debug('En el override...' ); // prestahop logger que podes desactivar no propio modulo
 
         $data = $SJBOVERRIDES::getData('general',);
 
-        if(!($override_enabled = (bool) $data['hook_order_history_active']))
+        $SJBOVERRIDES::debug(var_export($data, true));
+
+        if(!($override_enabled = (bool) $data['general_hookorderhistoryactive']))
             return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);
 
-        $ESTADO_FACTURADO =  (int)data['id_order_history_state'];
+        $ESTADO_FACTURADO =  (int)$data['general_idorderhistorystate'];
 
         if (!$new_order_state || !$id_order) {
             return;
