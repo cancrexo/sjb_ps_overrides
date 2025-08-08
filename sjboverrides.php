@@ -72,7 +72,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.1.2';
+        $this->version                = '2.1.5';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -159,7 +159,7 @@ class sjboverrides extends Module implements WidgetInterface
 
         $meusTabs = [
             [
-                'nombre'     => $this->l('SJB Overrides'),
+                'nombre'     => sprintf('%1$s (%2$s)',$this->l('SJB Overrides'),  $this->version),
                 'class_name' => 'AdminSjboverridesConfig',
                 'enabled'    => 1,
                 'active'     => 1,
