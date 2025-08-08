@@ -65,6 +65,9 @@ use \Sjboverrides\SJB_PSTools;
 
 
     public function postProcess() {
+
+        // die(__file__);
+        // var_dump($_REQUEST);
         if (\Tools::isSubmit('sjbSubmitConfig')) {
 
                               // arrays are not assigned by reference!
@@ -85,14 +88,17 @@ use \Sjboverrides\SJB_PSTools;
             //     $this->vaciaCache();
             //     $this->_html .= $this->displayConfirmation(sprintf('%1$s<br>', $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
             // }
+            $this->confirmations[] = $this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin');
 
-            $this->_html .= $this->displayConfirmation($this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin'));
         }
     } // postProcess
 
 
 
-
+    public function renderView()
+    {
+        return $this->_html . $this->renderForm();
+    }
    /**
      * Formulario
      */
@@ -118,9 +124,8 @@ use \Sjboverrides\SJB_PSTools;
         $datos2Form['issjbsubmit']               = 0; // Cambiase por js
 
         $helper->identifier   = $this->identifier; // indice de this->table, neste caso  id_configuration
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-        . '&configure=' . $this->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name;
-        $helper->token = \Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminSjboverridesConfig');
+        $helper->token = \Tools::getAdminTokenLite('AdminSjboverridesConfig');
 
         $helper->tpl_vars = [
             'fields_value' => $datos2Form, //$this->config,

@@ -270,7 +270,7 @@ class sjboverrides extends Module implements WidgetInterface
      * Pantalla de configuracion/ administración
      */
     public function getContent(){
-		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfigController'));
+		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfig'));
 	}
 
 
