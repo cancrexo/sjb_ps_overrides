@@ -53,7 +53,7 @@ class sjboverrides extends Module implements WidgetInterface
     protected $_html = '';
     // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
 
-    static $debugEnabled = true;
+    static $debugEnabled = false;
 
     // Quita underscores
     static function myreplace($str){

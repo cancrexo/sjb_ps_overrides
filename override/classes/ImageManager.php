@@ -45,11 +45,11 @@ class ImageManager extends ImageManagerCore
             return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
         }
 
-        $SJBOVERRIDES::debug(__method__);
-
+        
         if (! file_exists($src_file)) {
             return false;
         }
+        $SJBOVERRIDES::debug(__method__ . ' ' .__line__);
 
         // Fotos coa extension chula
         // if (strpos($dst_file, '_sjb')!== FALSE){
