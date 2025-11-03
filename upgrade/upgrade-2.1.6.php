@@ -11,25 +11,25 @@ if (!defined('_PS_VERSION_')) {
 function upgrade_module_2_1_6($object)
 {
    // nada
-   PrestaShopLogger::addLog(__METHOD__);
+//    PrestaShopLogger::addLog(__METHOD__);
    $config = $object->getData('general', false);
-   PrestaShopLogger::addLog('Cargados: ' . print_r($config, true));
+//    PrestaShopLogger::addLog('Cargados: ' . print_r($config, true));
    try{
         $config['hookocultarmanufacturer'] = 0;
         $config['manufacturerhiddenflag'] = '';
 
         $object->saveData('general', $config);
-        PrestaShopLogger::addLog('JRABADOS!'. print_r($config, true));
+        // PrestaShopLogger::addLog('JRABADOS!'. print_r($config, true));
         
         $module = Module::getInstanceByName('sjboverrides');
         $module->uninstallOverrides();
-        Tools::clearSmartyCache();
-        Tools::clearXMLCache();
-        Media::clearCache();
-        Tools::generateIndex();
+        // Tools::clearSmartyCache();
+        // Tools::clearXMLCache();
+        // Media::clearCache();
+        // Tools::generateIndex();
         $result = $module->installOverrides();
         
-        PrestaShopLogger::addLog('Resultado reinstalación overrides: ' . ($result ? 'OK' : 'ERROR'));
+        // PrestaShopLogger::addLog('Resultado reinstalación overrides: ' . ($result ? 'OK' : 'ERROR'));
         return $result;
 
    }catch(Exception $e){
