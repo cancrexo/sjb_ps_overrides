@@ -43,7 +43,7 @@ class OrderHistory extends OrderHistoryCore
 
         $data = $SJBOVERRIDES::getData('general',);
 
-        $SJBOVERRIDES::debug(var_export($data, true));
+        //$SJBOVERRIDES::debug(var_export($data, true));
 
         if(!($override_enabled = (bool) $data['general_hookorderhistoryactive']))
             return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);

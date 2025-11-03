@@ -32,13 +32,18 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'hook_image_manager'            => [-1,], // si o hook esta activado ()
+        'hook_image_manager'            =>[-1,], // Este non se usa de momento
+
+        // TODO ARREGLAR ZONA ADMINISTRACION
+        'hook_ocultar_manufacturer'           => [0], // si o hook esta activado
+        'manufacturer_hidden_flag'      => [''], // valor que debe ter o campo meta-titulo da marca PARA OCULTARSE NO FRONT
 
         'hook_preguntar_producto'       => [0], // si o hook esta activado
         'product_idfeaturevalue'        => [-1],
 
         'hook_order_history_active'     => [0], // si o hook esta activado
         'id_order_history_state'        => [-1],
+
 
         'url_rewrite'                   => [0], // si o hook esta activado
         'debug_enabled'                 => [1],
@@ -57,7 +62,8 @@ class sjboverrides extends Module implements WidgetInterface
 
     // Quita underscores
     static function myreplace($str){
-        $limpia = strtolower(str_ireplace(array('_'), '', $str));
+        // $limpia = strtolower(str_ireplace(array('_'), '', $str));
+        $limpia = preg_replace('/[-_]/', '', $str);
         return $limpia;
     }
 
@@ -76,11 +82,12 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.1.5';
+        $this->version                = '2.1.6';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
         $this->bootstrap              = true;
+
         //$this->module_key = '';
         parent::__construct();
 
@@ -116,7 +123,7 @@ class sjboverrides extends Module implements WidgetInterface
         \PrestaShopLogger::addLog('Hooks  OK');
 
 
-        return $this->defaultValues(); // trivial!
+        return (bool)$this->defaultValues(); // trivial!
     }
 
 
@@ -134,23 +141,26 @@ class sjboverrides extends Module implements WidgetInterface
     /**
      * Valores por defecto
      *
-     * @return void
+     * @return array de datos
      */
     protected function defaultValues() {
 
         \PrestaShopLogger::addLog(__METHOD__);
         $_config=[];
         foreach($this->default_config as $key=> $value) {
-            $key = static::myreplace($key);
+            $key = static::myreplace($key); // Quita underscores e guions
             $_config[$key] = reset($value);
         }
         // \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
         $this->saveData('general', $_config);
         \PrestaShopLogger::addLog('Fin default values');
-        return true;
+        return $_config;
     }
 
-
+    // para acceder dende controler!
+    public function setDefaultValues(){
+        return $this->defaultValues();
+    }
 
 
     /**
@@ -160,14 +170,25 @@ class sjboverrides extends Module implements WidgetInterface
      * @return ARRAY
      */
     public function getData( $key='general', $add_prefix = true) {
+
         return \Sjboverrides\SJB_PSTools::getInstance()->getStoredArray(static::PREFIX, $key,  $add_prefix);
     }
 
+    /**
+     * Pasas array a buscar e clave deseada de dito array:
+     * p.e., general, manufacturer_hidden_flag
+     *
+     * @return void
+     */
+    public function getSingleData($arr, $key){
+        $data = $this->getData($arr, false); // sin rpefixo general_ p.e.
+        $key = static::myreplace($key);  // eliminamos guiones y underscores con preg_replace
+        return $data[$key] ?? null;
+    }
 
 
-
+    // as claves xa deben vir sn undersocres nin guions
     public function saveData($key, $data){
-
         \Configuration::updateValue(static::PREFIX . $key.'_config' ,  \Tools::jsonEncode($data, JSON_HEX_QUOT | JSON_HEX_TAG), true);
     }
 
@@ -278,7 +299,7 @@ class sjboverrides extends Module implements WidgetInterface
         foreach ($this->_hooks as $hook) {
             $this->unregisterHook($hook);
         }
-        \Configuration::deleteByName(self::PREFIX . 'config');
+        \Configuration::deleteByName(self::PREFIX . 'general_config');
 
         return true;
     }
@@ -469,6 +490,8 @@ class sjboverrides extends Module implements WidgetInterface
 
 
     */
+
+
 
 
     public function hookActionAdminControllerSetMedia($params){

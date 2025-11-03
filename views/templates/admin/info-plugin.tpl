@@ -10,6 +10,7 @@
          <ol >
          <li>Override de <strong>clase  Imagemanager</strong> para recorte preciso de las imágenes. Añade funcionalidad _sjb para imagenes con fondo transparente.</li>
           <li>Override de <strong>clase DISPATCHER</strong> en <strong>categorías de productos</strong>, <strong>productos</strong>, <strong>fabricantes</strong>, <strong>proveedores</strong> y <stromng>paginas cms</stromng> para eliminar los [id] de las URL.</li>
+          <li>Override de <strong>clase MANUFACTURER</strong>: se pueden opcultra marcas en el frontend, asignando un valor dado a su metatitulo</li>
          {* <li>Override de <strong>clase CartRule</strong>: solo 1 cupon de desconto por pedido!!</li>
          <li>Override de <strong>controller  IndexController</strong> para redirixir usuarios de Catering a categoria catering cando acceden a INDEX</li> *}
          {* <li>Override de clase Customers: incluir TELÉFONO e EMAIL en columna de listado así como exportación a excel. </li> *}
@@ -18,6 +19,7 @@
       <li>Hooks incluidos<br>
          <ol >
           <li>Hook <strong>hookActionOrderStatusPostUpdate</strong> para asignar Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable <strong>ESTADO_FACTURADO</strong></li>
+        
          </ol>
          </li>
       </ul>

@@ -136,6 +136,9 @@ use \Sjboverrides\SJB_PSTools;
         // carga ddatos de configuracion
         // $datos2Form = $this->module->getData('general');
         $this->config = $this->module->getData('general');
+        if(!$this->config){
+            $this->config = $this->module->setDefaultValues();
+        }
 
         // Fijos, non bbdd
         $this->config['module_override_reinstall'] = false;
@@ -158,6 +161,7 @@ use \Sjboverrides\SJB_PSTools;
                 $this->getFormPedidos(),
                 // $this->getFormOverrideRewrite(),
                 $this->getFormOverrideProducto(),
+                $this->getFormOverrideManufacturer(),
                 // $this->getFormOverrideReinstalls(),
                 $this->getFormDebug(),
             ]
@@ -284,6 +288,63 @@ use \Sjboverrides\SJB_PSTools;
                     ),
                 ],
 
+            ],
+
+
+
+            'submit' => [
+                'title' => $this->l('Save'),
+                'name'  => 'sjbSubmitConfig',
+                'class' => 'sjbsubmit btn btn-default pull-right',
+            ],
+        ];
+        // var_dump($form);
+        return ['form'=>$form];
+    }
+ // Para ter posibiliadde "PREGUNTAR" por producto
+    protected function   getFormOverrideManufacturer(){
+
+        $form = [
+
+            'legend' => [
+                'title' => $this->l('Override Manufacturer'),
+                'icon'  => 'icon-cog',
+            ],
+            'input'  => [
+                [
+                    'type'   => 'switch',
+                    'label'  => $this->l('Ocultar marcas con metatitulo dado'),
+                    'desc'   => sprintf('%1$s <strong style="color:#c00">%2$s</strong> %3$s <strong>%4$s</strong> %5$s',
+                        $this->l('Si la'),
+                        $this->l('marca') ,
+                        $this->l(' tiene un'),
+                        $this->l('metatitulo'),
+                        $this->l('igual al valor definido aquí, esta no se mostrará en el FRONTEND.')
+                    ),
+
+                    'name'   => 'general_hookocultarmanufacturer',
+                    'values' => [
+                        [
+                            'id'    => 'ocultar_on',
+                            'value' => 1,
+                            'label' => $this->l('On'),
+                        ],
+                        [
+                            'id'    => 'ocultar_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+                [
+                    'form_group_class'=>'grupo-ocultar-manufacturer ' . ((int)$this->config['general_hookocultarmanufacturer'] ? '' : 'hidden'),
+                    'type'     => 'text', // This is a <select> tag.
+                    'label'    => $this->l('Texto a incluir'), // The <label> for this <select> tag.
+                    'desc'   => $this->l('El texto que filtrará la marca.'),
+                    'cols' => 3,
+                    'class' => 'sjboverrides',
+                    'name'     => 'general_manufacturerhiddenflag', // The content of the 'id' attribute of the <select> tag.
+                ]
             ],
 
 

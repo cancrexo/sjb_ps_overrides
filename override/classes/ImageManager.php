@@ -8,7 +8,7 @@
  *
  * You must not modify, adapt or create derivative works of this source code
  *
- *  Override para permitir imaxes png transparentes
+ *  Override para permitir imaxes png transparentes. Parece que falla
  *  Preferences -> Images -> Engadiur e poñerlle de nombre whatever_sjb (engadir '_sjb' ao final do name)
  *
  *  @author Cancrexo. cancrexo@gmail.com
