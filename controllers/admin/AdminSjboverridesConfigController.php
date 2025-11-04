@@ -157,8 +157,8 @@ use \Sjboverrides\SJB_PSTools;
 
         $el_llonatan =  $helper->generateForm(
             [
-                // $this->getFormOverrideImages(),
-                $this->getFormPedidos(),
+                $this->getFormOverrideImagenamager(),
+                $this->getFormOverridePedidos(),
                 // $this->getFormOverrideRewrite(),
                 $this->getFormOverrideProducto(),
                 $this->getFormOverrideManufacturer(),
@@ -172,8 +172,52 @@ use \Sjboverrides\SJB_PSTools;
 
     }
 
+    // override imagemanager (provisional):
+    public function getFormOverrideImagenamager(){
+        $form = [
+
+            'legend' => [
+                'title' => $this->l('Image Manager'),
+                'icon'  => 'icon-cog',
+            ],
+            'input'  => [
+                [
+                    'type'   => 'switch',
+                    'label'  => $this->l('usar Imagemanager propio'),
+                    'desc'   => sprintf('%1$s', $this->l('Usa un override de imagemanager avanzado con soporte para imagenes trasnparentes y recorte preciso')                        
+                    ),
+
+                    'name'   => 'general_hookimagemanager',
+                    'values' => [
+                        [
+                            'id'    => 'imagemanager_on',
+                            'value' => 1,
+                            'label' => $this->l('On'),
+                        ],
+                        [
+                            'id'    => 'imagemanager_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+             
+            ],
+
+
+
+            'submit' => [
+                'title' => $this->l('Save'),
+                'name'  => 'sjbSubmitConfig',
+                'class' => 'sjbsubmit btn btn-default pull-right',
+            ],
+        ];
+        // var_dump($form);
+        return ['form'=>$form];
+    }
+
     // override pedidos
-    public function getFormPedidos(){
+    public function getFormOverridePedidos(){
 
         return [
             'form' => [
@@ -359,49 +403,6 @@ use \Sjboverrides\SJB_PSTools;
         return ['form'=>$form];
     }
 
-
-    // Para usar a miña rutina de imaxes chula (ao rexenerar)
-    protected function getFormOverrideImages(){
-        return [
-            'form' => [
-
-                'legend' => [
-                    'title' => $this->l('Override de imagenes'),
-                    'icon'  => 'icon-cog',
-                ],
-                // 'error'  => sprintf('<strong>%1$s</strong> %2$s', 'OJO', $this->l('Parámetros de configuracion y desarrollo')),
-                'input'  => [
-                    'type'   => 'switch',
-                    'label'  => $this->l('Image Manager'),
-                    'desc'   => sprintf(
-                        '%1$s <strong>%2$s</strong> %3$s',
-                        $this->l('Override de clase'),
-                        $this->l('Imagemanager'),
-                        $this->l('para recorte preciso de las imágenes. Añade funcionalidad _sjb para fondo transparente.')),
-                    'name'   => 'image_manager',
-                    'values' => [
-                        [
-                            'id'    => 'image_manager_on',
-                            'value' => 1,
-                            'label' => $this->l('On'),
-                        ],
-                        [
-                            'id'    => 'image_manager_off',
-                            'value' => 0,
-                            'label' => $this->l('Off'),
-                        ],
-                    ],
-                ],
-
-                'submit' => [
-                    'title' => $this->l('Save'),
-                    'name'  => 'sjbSubmitConfig',
-                    'class' => 'sjbsubmit btn btn-default pull-right',
-
-                ],
-            ],
-        ];
-    }
 
     // Forumlario debug e config
     public function getFormDebug(){

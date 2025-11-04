@@ -227,7 +227,7 @@ class SJB_PSTools{
     */
     public function getStoredArray( $module_prefix = '_mimodule_', $array_prefix = 'ahilollevas_', $add_prefix = true ){
 
-        \PrestaShopLogger::addLog(__method__);
+        // \PrestaShopLogger::addLog(__method__);
         $_config = []; // Configuracion a devolver
         if(strlen($module_prefix) && substr($module_prefix, -1) != '_')$module_prefix .= '_'; // añade _
         if(strlen($array_prefix) && substr($array_prefix, -1) != '_')$array_prefix .= '_'; // añade _
@@ -238,7 +238,7 @@ class SJB_PSTools{
             P.e, para ticket_ a clase deberá ter unha propiedade que se chame ticket_config_keys
         */
         $config2load = $module_prefix.$array_prefix.'config'; // p.e  cargará da tabla configuracion APOS_ticket_config
-        \PrestaShopLogger::addLog('clave de configuracion a cargar: ' . $config2load);
+        // \PrestaShopLogger::addLog('clave de configuracion a cargar: ' . $config2load);
 
         $stored_config = (array)\Tools::jsonDecode(\Configuration::get( $config2load), true); // true pq queres array asociativo!!
         // var_dump($config2load);
@@ -267,7 +267,7 @@ class SJB_PSTools{
      */
     public  function setStoredArray($data, $module_prefix='', $array_prefix = null, $config_keys= null, &$este = null){
 
-        PrestaShopLogger::addLog(__method__);
+        // PrestaShopLogger::addLog(__method__);
         
         $_config = []; // Configuracion a devolver??
 

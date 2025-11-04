@@ -32,7 +32,7 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'hook_image_manager'            =>[-1,], // Este non se usa de momento
+        'hook_image_manager'            =>[1,], // Este non se usa de momento
 
         // TODO ARREGLAR ZONA ADMINISTRACION
         'hook_ocultar_manufacturer'           => [0], // si o hook esta activado
@@ -82,7 +82,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.1.6';
+        $this->version                = '2.2.0';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -287,20 +287,26 @@ class sjboverrides extends Module implements WidgetInterface
 
 
     public function uninstall() {
+        PrestaShopLogger::addLog(__method__);
         $this->_clearCache('*');
 
         if (! parent::uninstall()) {
             return false;
         }
+        PrestaShopLogger::addLog('parent uninstall OK');
 
         if(!$this->uninstallModuleTabs()){
             return false;
-         }
+        }
+        PrestaShopLogger::addLog('uninstallModuleTabs OK');
+
         foreach ($this->_hooks as $hook) {
             $this->unregisterHook($hook);
         }
-        \Configuration::deleteByName(self::PREFIX . 'general_config');
+        PrestaShopLogger::addLog('unregisterHooks OK');
 
+        \Configuration::deleteByName(self::PREFIX . 'general_config');
+        PrestaShopLogger::addLog('delete general_config OK');
         return true;
     }
 
