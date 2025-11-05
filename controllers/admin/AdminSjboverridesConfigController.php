@@ -136,10 +136,10 @@ use \Sjboverrides\SJB_PSTools;
         // carga ddatos de configuracion
         // $datos2Form = $this->module->getData('general');
         $this->config = $this->module->getData('general');
+       
         if(!$this->config){
             $this->config = $this->module->setDefaultValues();
         }
-
         // Fijos, non bbdd
         $this->config['module_override_reinstall'] = false;
         $this->config['module_hooks_reinstall']     = false;

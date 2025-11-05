@@ -32,7 +32,7 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'hook_image_manager'            =>[1,], // Este non se usa de momento
+        'hook_image_manager'            =>[0], // Este non se usa de momento
 
         // TODO ARREGLAR ZONA ADMINISTRACION
         'hook_ocultar_manufacturer'           => [0], // si o hook esta activado
@@ -151,15 +151,19 @@ class sjboverrides extends Module implements WidgetInterface
             $key = static::myreplace($key); // Quita underscores e guions
             $_config[$key] = reset($value);
         }
-        // \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
         $this->saveData('general', $_config);
         \PrestaShopLogger::addLog('Fin default values');
         return $_config;
     }
 
-    // para acceder dende controler!
+    // para acceder dende controler -->setea valores por defecto e devolveos!
     public function setDefaultValues(){
-        return $this->defaultValues();
+        $_config = $this->defaultValues();
+        $_config = array_combine(
+            array_map(fn($key) => 'general_' . $key, array_keys($_config)),
+            $_config
+        );
+        return $_config;
     }
 
 
