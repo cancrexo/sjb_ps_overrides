@@ -27,6 +27,11 @@ class sjboverrides extends Module implements WidgetInterface
     protected $_hooks = [
         'actionAdminControllerSetMedia',
         'actionOrderStatusPostUpdate',
+        // 'actionFrontControllerSetMedia',
+        // 'actionFrontControllerInitAfter',
+        // 'actionFrontControllerSetVariables'
+        'displayProductBuilder',
+        // 'displayBeforeBodyClosingTag'
     ];
 
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
@@ -82,7 +87,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.2.0';
+        $this->version                = '2.3.0';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -220,7 +225,7 @@ class sjboverrides extends Module implements WidgetInterface
 
         $meusTabs = [
             [
-                'nombre'     => sprintf('%1$s (%2$s)',$this->l('SJB Overrides'),  $this->version),
+                'nombre'     => sprintf('%1$s -%2$s',$this->l('SJB Overrides'),  $this->version),
                 'class_name' => 'AdminSjboverridesConfig',
                 'enabled'    => 1,
                 'active'     => 1,
@@ -585,18 +590,32 @@ class sjboverrides extends Module implements WidgetInterface
             <!-- ( smarty metodo 2) Call with a hook name -->
             {widget name='<module_name>' hook='<hook_name>'}
 
-        */
 
-    // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
-    //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
+                OLLO:
+                Lembra
+                Si enganchas o modulo nun hook calquera no backend, si o modulo non ten ese metodo hook definido
+                enton sempre pasa por renderWidget e amosarase a no ser que discrimines por metodo 2 (hook name)
+
+
+
+                Mais info https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
+     */
+
+
+
     public function renderWidget($hookName = null, array $configuration = [])
     {
 
         switch ($hookName) {
 
+
+            case 'displayProductBuilder':
+                $this->context->controller->addJS($this->_path . 'views/product.js');
+            break;
+
             default:
-                return '<p>' . $hookName . ' <strong style="color:#c00">DESCONOCIDO</strong>.</p>';
-                break;
+                return '<p>' . $hookName . ' <strong style="color:#c00"> No definido en '.__method__.'</strong>.</p>';
+            break;
 
         }
     }
