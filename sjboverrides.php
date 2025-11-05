@@ -1,525 +1,523 @@
 <?php
 /**
-* 2012-2024 SJBDIXITAL
-*
-* NOTICE OF LICENSE
-*
-* This is a commercial license
-* Do not allow to re-sales, edit without permission from SJB Dixital
-* International Registered Trademark & Property of SJB Dixital
-*
-*
-* MÓDULO PARA INSERTAR OVERRIDES
-*
-* @author Cancrexo <dani@sjbdixital.es>
-* @copyright SJB dixital
-* @license   Commercial License. All right reserved
-*/
+ * 2012-2024 SJBDIXITAL
+ *
+ * NOTICE OF LICENSE
+ *
+ * This is a commercial license
+ * Do not allow to re-sales, edit without permission from SJB Dixital
+ * International Registered Trademark & Property of SJB Dixital
+ *
+ *
+ * MÓDULO PARA INSERTAR OVERRIDES
+ *
+ * @author Cancrexo <dani@sjbdixital.es>
+ * @copyright SJB dixital
+ * @license   Commercial License. All right reserved
+ */
 declare(strict_types=1);
 use PrestaShopBundle\Form\Admin\Type\TranslatableType;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
-class sjboverrides extends Module implements WidgetInterface{
+class sjboverrides extends Module implements WidgetInterface
+{
 
-   const PREFIX = 'SJBOVERRIDE_';
+    const PREFIX = 'SJBOVERRIDE_';
 
-   protected $_hooks = array(
-      'actionAdminControllerSetMedia',
-      'actionOrderStatusPostUpdate'
-   );
+    protected $_hooks = [
+        'actionAdminControllerSetMedia',
+        'actionOrderStatusPostUpdate',
+    ];
 
-   // Novas rutas seo friendly
-   protected $routes = array(
+    // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
+    // todo
+    protected $default_config = [
+        'hook_image_manager'            =>[1,], // Este non se usa de momento
 
-      'category_rule' => '{rewrite}/',
-      // 'product_rule' => '{rewrite}.html',  // producto-.html
-      //'module' => 'module/{module}{/:controller}',
-      //'cms_category_rule' => 'content/category/{id}-{rewrite}',
-      //'cms_rule' => 'info/{rewrite}',
-      //'layered_rule' => '{id}-{rewrite}{/:selected_filters}',
-      //'manufacturer_rule' => 'marca-{id}-{rewrite}',
-      //'supplier_rule' => 'proveedor-{id}-{rewrite}',
-   );
+        // TODO ARREGLAR ZONA ADMINISTRACION
+        'hook_ocultar_manufacturer'           => [0], // si o hook esta activado
+        'manufacturer_hidden_flag'      => [''], // valor que debe ter o campo meta-titulo da marca PARA OCULTARSE NO FRONT
 
-   public   $config = array(),
-               $_loadedconfig,
-               $error, $valid, $path,
-               $list_order_state;
+        'hook_preguntar_producto'       => [0], // si o hook esta activado
+        'product_idfeaturevalue'        => [-1],
 
-   protected $_html = '';
-      // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
-
-   static $debugEnabled = true;
+        'hook_order_history_active'     => [0], // si o hook esta activado
+        'id_order_history_state'        => [-1],
 
 
-   /*
-   * Debug de clase
-   * Uso:   self::debug('error aqui')
-   */
-   static function debug($msg = '', $level = 1){
-      if(!static::$debugEnabled)return;
-      \PrestaShopLogger::addLog($msg, (int)$level);
-   }
+        'url_rewrite'                   => [0], // si o hook esta activado
+        'debug_enabled'                 => [1],
+        'remove_data'                   => [1],
+    ];
 
-      /**
-       * Constructor
-      */
-      public function __construct(){
-         $this->name = 'sjboverrides';
-         $this->tab = 'front_office_features';
-         $this->version = '2.0.0';
-         $this->need_instance = 0;
-         $this->author = 'Daniel Prol «Cancrexo» ';
-         $this->ps_versions_compliancy = array('min' => '1.7.6',  'max' =>_PS_VERSION_);
-         $this->bootstrap = true;
-         //$this->module_key = '';
-         parent::__construct();
+    public
+        $config,
+        $_loadedconfig,
+        $error, $valid, $path;
 
-         $this->displayName = $this->l('SJB Overrides ');
-         $this->description = $this->l('Módulo para insertar overrides, hooks y widgets varios.');
-         $this->confirmUninstall = $this->l('¿Seguro que quieres desinstalar este módulo?');
+    protected $_html = '';
+    // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
 
-         $this->error = false;
-         $this->valid = false;
-         $this->path = $this->_path; // Protected polo visto, logo uso unha public para os templates!
-         static::$debugEnabled = (bool)\Configuration::get(self::PREFIX.'DEBUG_ENABLED') ?? true;
-      }
+    static $debugEnabled = false;
 
-      public function install()
-      {
-         error_log('instalar');
-         static::debug($this->name  . ' INSTALL');
+    // Quita underscores
+    static function myreplace($str){
+        // $limpia = strtolower(str_ireplace(array('_'), '', $str));
+        $limpia = preg_replace('/[-_]/', '', $str);
+        return $limpia;
+    }
 
-         if (!parent::install()) {
+    /*
+    * Debug de clase
+    * Uso:   self::debug('error aqui')
+    */
+    public static function debug($msg = '', $level = 1){
+        if (! static::$debugEnabled) return;
+        \PrestaShopLogger::addLog($msg, (int) $level);
+    }
+
+    /**
+     * Constructor
+     */
+    public function __construct() {
+        $this->name                   = 'sjboverrides';
+        $this->tab                    = 'front_office_features';
+        $this->version                = '2.2.0';
+        $this->need_instance          = 0;
+        $this->author                 = 'Daniel Prol «Cancrexo» ';
+        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
+        $this->bootstrap              = true;
+
+        //$this->module_key = '';
+        parent::__construct();
+
+        $this->displayName      = $this->l('SJB Overrides ');
+        $this->description      = $this->l('Módulo para insertar overrides, hooks y widgets varios.');
+        $this->confirmUninstall = $this->l('¿Seguro que quieres desinstalar este módulo?');
+
+        $this->error          = false;
+        $this->valid          = false;
+        $this->path           = $this->_path; // Protected polo visto, logo uso unha public para os templates!
+        // static::$debugEnabled = (bool) \Configuration::get(self::PREFIX . 'DEBUG_ENABLED') ?? true;
+    }
+
+    public function install() {
+
+        error_log('instalar');
+
+        \PrestaShopLogger::addLog(__METHOD__);
+
+        if (! parent::install()) {
             static::debug("Error en parent_install");
             return false;
-         }
+        }
 
-         foreach ($this->_hooks as $hook) {
-            if (!$this->registerHook($hook)) {
-                  static::debug("Error en Hook $hook");
-                  return false;
-            }
-            static::debug("Hook $hook OK");
-         }
-         return $this->defaultValues(); // trivial!
-      }
-
-      public function uninstall(){
-         $this->_clearCache('*');
-
-         if (!parent::uninstall()) {
+        if ( ! $this->installTabs() ) {
             return false;
-         }
+        }
 
-         foreach ($this->_hooks as $hook) {
+        // Instalamos hooks:
+        if(!$this->install_hooks()){
+            return false;
+        }
+        \PrestaShopLogger::addLog('Hooks  OK');
+
+
+        return (bool)$this->defaultValues(); // trivial!
+    }
+
+
+    public function install_hooks(){
+
+        foreach ($this->_hooks as $hook) {
+            if (! $this->registerHook($hook)) {
+                static::debug("Error en Hook $hook");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Valores por defecto
+     *
+     * @return array de datos
+     */
+    protected function defaultValues() {
+
+        \PrestaShopLogger::addLog(__METHOD__);
+        $_config=[];
+        foreach($this->default_config as $key=> $value) {
+            $key = static::myreplace($key); // Quita underscores e guions
+            $_config[$key] = reset($value);
+        }
+        // \Configuration::updateValue(static::PREFIX .'general_config', \Tools::jsonEncode($_config, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+        $this->saveData('general', $_config);
+        \PrestaShopLogger::addLog('Fin default values');
+        return $_config;
+    }
+
+    // para acceder dende controler!
+    public function setDefaultValues(){
+        return $this->defaultValues();
+    }
+
+
+    /**
+     * Carga a configuracio que lle indiques
+     *
+     * @param [type] $key
+     * @return ARRAY
+     */
+    public function getData( $key='general', $add_prefix = true) {
+
+        return \Sjboverrides\SJB_PSTools::getInstance()->getStoredArray(static::PREFIX, $key,  $add_prefix);
+    }
+
+    /**
+     * Pasas array a buscar e clave deseada de dito array:
+     * p.e., general, manufacturer_hidden_flag
+     *
+     * @return void
+     */
+    public function getSingleData($arr, $key){
+        $data = $this->getData($arr, false); // sin rpefixo general_ p.e.
+        $key = static::myreplace($key);  // eliminamos guiones y underscores con preg_replace
+        return $data[$key] ?? null;
+    }
+
+
+    // as claves xa deben vir sn undersocres nin guions
+    public function saveData($key, $data){
+        \Configuration::updateValue(static::PREFIX . $key.'_config' ,  \Tools::jsonEncode($data, JSON_HEX_QUOT | JSON_HEX_TAG), true);
+    }
+
+
+
+
+    public function installTabs() {
+        \PrestaShopLogger::addLog(__METHOD__);
+        /*
+         $tab->id_parent = 0; main tab
+         $tab->id_parent = -1; // parent -1 será invisible
+         $tab->id_parent = (int)Tab::getIdFromClassName('AdminCatalog'); // por exemplo, ou  AdminCarriers ->60
+         $improve_tab_id = (int) Tab::getIdFromClassName('IMPROVE'); //  $meutab    =  new Tab($improve_tab_id);
+         $modulestab     = (int) Tab::getIdFromClassName('AdminParentModulesSf');
+         $improve_tab    =  new Tab($improve_tab_id);
+
+         // ou se queremos que estea dentro de transporte
+         $tmp = (int)Tab::getIdFromClassName('AdminCarriers');
+         $carrierTab = new Tab($tmp);
+         $tab->id_parent = $carrierTab->id_parent; //pq AdminCarriers non e a raíz!!
+
+      */
+        $improve_tab_id = (int)Tab::getIdFromClassName('IMPROVE');
+        $improve_tab    =  new Tab($improve_tab_id);
+
+        $meusTabs = [
+            [
+                'nombre'     => sprintf('%1$s (%2$s)',$this->l('SJB Overrides'),  $this->version),
+                'class_name' => 'AdminSjboverridesConfig',
+                'enabled'    => 1,
+                'active'     => 1,
+                'icon' => '',
+            ],
+            /*[
+                'nombre'     => $this->l('SJB Carriers Http Requests'),
+                'class_name' => 'AdminSjbcarriersHttp',
+                'enabled'    => 1,
+                'active'     => 0, // not visible
+            ],*/
+        ];
+
+        // Creamos tabs
+        $resultado = $this->createTabs($meusTabs, $improve_tab);
+
+        if($resultado)
+        PrestaShopLogger::addLog(__method__ .': Tabs creadas con éxito');
+
+        return $resultado;
+
+    }
+
+    // Instalación recursiva de tabs
+    protected function createTabs($arrTabs, $parent_tab = null){
+
+        PrestaShopLogger::addLog(__method__ );
+
+        foreach ($arrTabs as $i => $T) {
+        $tab = new Tab();
+        $tab->active = (int)$T['active'];
+        $tab->enabled = (int)$T['enabled'];
+        $tab->name = array();
+
+        foreach (Language::getLanguages(false) as $lang) {
+                $tab->name[(int) $lang['id_lang']] = $T['nombre'];
+        }
+
+        //$tab->id_parent = $parent_tab ? $parent_tab->id : (isset($T['parent_tab']) ? $T['parent_tab'] : 0); // parent -1 será invisile
+        $tab->class_name = $T['class_name'];
+        $tab->id_parent = $parent_tab ? $parent_tab->id : 0; // parent -1 será invisile
+        $tab->module = isset($T['module']) ? $T['module'] : $this->name;
+
+        // Agregar soporte para iconos
+        if (isset($T['icon'])) {
+            $tab->icon = $T['icon'];
+        }
+
+        if (!$tab->add()) {
+            PrestaShopLogger::addLog(__method__ .': Error añadiendo tab('.$tab->class_name . ')', 3);
+            return false;
+        }
+
+        // (Recursivo)
+        if (array_key_exists('childtabs', $T)) {
+                PrestaShopLogger::addLog('Tab: recursivo. Entrando.');
+                return $this->createTabs($T['childtabs'], $tab);
+        }
+        PrestaShopLogger::addLog('Added Tab '. $T['nombre'] . '('. $T['class_name']. ')');
+
+        }
+        return true;
+    }
+
+
+
+
+
+
+    public function uninstall() {
+        PrestaShopLogger::addLog(__method__);
+        $this->_clearCache('*');
+
+        if (! parent::uninstall()) {
+            return false;
+        }
+        PrestaShopLogger::addLog('parent uninstall OK');
+
+        if(!$this->uninstallModuleTabs()){
+            return false;
+        }
+        PrestaShopLogger::addLog('uninstallModuleTabs OK');
+
+        foreach ($this->_hooks as $hook) {
             $this->unregisterHook($hook);
-         }
+        }
+        PrestaShopLogger::addLog('unregisterHooks OK');
 
-         \Configuration::deleteByName(self::PREFIX.'IMAGEMANAGER' );
-         \Configuration::deleteByName(self::PREFIX.'ORDERHISTORY' );
-         \Configuration::deleteByName(self::PREFIX.'ORDERHISTORYSTATE' );
-         \Configuration::deleteByName(self::PREFIX.'DEBUG_ENABLED');
-         \Configuration::deleteByName(self::PREFIX.'REMOVE_DATA');
-
-         return true;
-      }
-
-      /**
-       * Valores por defecto
-      *
-      * @return void
-      */
-      protected function defaultValues(){
+        \Configuration::deleteByName(self::PREFIX . 'general_config');
+        PrestaShopLogger::addLog('delete general_config OK');
+        return true;
+    }
 
 
-         \Configuration::updateValue(self::PREFIX.'IMAGEMANAGER', false );
-         \Configuration::updateValue(self::PREFIX.'ORDERHISTORY', false );
-         \Configuration::updateValue(self::PREFIX.'ORDERHISTORYSTATE', 0 );
-         \Configuration::updateValue(self::PREFIX.'DEBUG_ENABLED', true );
-         \Configuration::updateValue(self::PREFIX.'REMOVE_DATA', false );
-         return true;
-      }
+    // :-O
+    private function uninstallModuleTabs(){
 
+        PrestaShopLogger::addLog(__method__ );
 
-      /**
-       * Pantalla de configuracion/ administración
-      *
-      */
-      public function getContent(){
-         $this->postProcess();
-         $this->context->smarty->assign('path', $this->getPathUri() . 'views/'); // uri path for images
-         $this->_html .= $this->renderForm();
-         return $this->_html;
-      }
-
-      public function postProcess()
-      {
-         if (\Tools::isSubmit('sjbSubmitConfig') ) {
-
-            // arrays are not assigned by reference!
-            $formvalues = array(); // array with sanitized values
-
-            \Configuration::updateGlobalValue(self::PREFIX .'IMAGEMANAGER', (int)Tools::getValue('image_manager'));
-            \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORY', (int)Tools::getValue('order_history'));
-            \Configuration::updateGlobalValue(self::PREFIX .'ORDERHISTORYSTATE', (int)Tools::getValue('id_estado_facturado'));
-            \Configuration::updateGlobalValue(self::PREFIX .'DEBUG_ENABLED', (int)Tools::getValue('debug_enabled'));
-            \Configuration::updateGlobalValue(self::PREFIX .'REMOVE_DATA',(int)Tools::getValue('remove_data'));
-
-
-
-            if((int)\Tools::getValue('module_override_reinstall')){
-                  $overrides = $this->uninstallOverrides() &&  $this->installOverrides();
-                  $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Overrides resintalados OK', [], 'Modules.Sjboverrides.Admin')));
+        $moduleTabs = Tab::getCollectionFromModule($this->name);
+        if (!empty($moduleTabs)) {
+        foreach ($moduleTabs as $moduleTab) {
+            if (!$moduleTab->delete()) {
+                return false;
             }
-
-            if((int)\Tools::getValue('module_cache_clear')){
-                  $this->vaciaCache();
-                  $this->_html .= $this->displayConfirmation( sprintf('%1$s<br>',  $this->trans('Cache vaciado', [], 'Modules.Sjboverrides.Admin')));
-            }
-
-            $this->_html .= $this->displayConfirmation( $this->trans('Configuracion de modulo actualizada.', [], 'Modules.Sjboverrides.Admin') );
-         }
-      } // postProcess
-
-
-   /**
-   * Formulario
-   */
-   public function renderForm(){
-
-      $helper = new \HelperForm();
-      $helper->module = $this;
-      $helper->show_toolbar = true;
-      $helper->table = $this->table; // PS_CONFIGURATION!!
-      $lang = new \Language((int) Configuration::get('PS_LANG_DEFAULT'));
-      $helper->default_form_language = $lang->id; //$this->context->anguage->id
-      $helper->allow_employee_form_lang =
-      \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
-
-      // Estad pedidos
-      $order_state = \OrderStateCore::getOrderStates( $this->context->language->id);
-
-      $this->list_order_state = array();
-
-      foreach($order_state as $OS){
-
-         $this->list_order_state[] = array( 'id_order_state'  => $OS['id_order_state'], 'label' => $OS['name']);
-      }
-
-
-
-      $datos2Form['image_manager'] = (bool) \Configuration::get(self::PREFIX.'IMAGEMANAGER');
-      $datos2Form['url_rewrite'] = (bool) \Configuration::get(self::PREFIX.'URLREWRITE');
-      $datos2Form['order_history'] = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
-      $datos2Form['id_estado_facturado'] = (int) Configuration::get(self::PREFIX.'ORDERHISTORYSTATE');
-      $datos2Form['module_override_reinstall']= false;
-      $datos2Form['module_cache_clear']= false;
-      $datos2Form['debug_enabled'] = (bool) \Configuration::get(self::PREFIX.'DEBUG_ENABLED');
-      $datos2Form['remove_data'] = (bool) \Configuration::get(self::PREFIX.'REMOVE_DATA');
-      $datos2Form['issjbsubmit'] = 0; // Cambiase por js
-
-      $helper->identifier = $this->identifier; // indice de this->table, neste caso  id_configuration
-      $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-      . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-      $helper->token = \Tools::getAdminTokenLite('AdminModules');
-
-      $helper->tpl_vars = array(
-         'fields_value' => $datos2Form, //$this->config,
-         'languages' => $this->context->controller->getLanguages(),
-         'id_language' => $this->context->language->id,
-      );
-
-
-      return $helper->generateForm(
-         array(
-            $this->getFormOverrides(),
-            $this->getFormHooks(),
-            $this->getFormDebug(),
-         )
-      );
-   }
-
-   public function vaciaCache(){
-      static::debug('Borrando cache prestashop', 2);
-      \Tools::clearSmartyCache();
-      \Tools::clearXMLCache();
-      \Media::clearCache();
-      \Tools::generateIndex();
-      static::debug('cache prestashop borrado', 2);
+        }
+        }
+        // Root tab
+        //   $tabMain = new Tab((int) Tab::getIdFromClassName('AdminPdvonlineMain'));
+        //   return $tabMain->delete();
+        return true;
    }
 
 
 
-   public function getInstructions(){
-         $this->context->smarty->assign(array(
-         'moduleprefix' => self::PREFIX,
-         'chacho'=>'Dani'
-         ));
-      return $this->context->smarty->fetch($this->getLocalPath() . 'views/admin/info-plugin.tpl');
-   }
 
 
-   public function getFormHooks(){
+    /**
+     * Pantalla de configuracion/ administración -->CONTROLLERR
+     */
+    public function getContent(){
+		Tools::redirectAdmin($this->context->link->getAdminLink('AdminSjboverridesConfig'));
+	}
 
-      return array(
-         'form' => array(
 
-            'legend' => array(
-               'title' => $this->l('Hooks'),
-               'icon' => 'icon-cog'
-               ),
 
-            'input' => array(
 
-               array(
-                  'type' => 'switch',
-                  'label' => $this->l('OrderHistory'),
-                  'desc' => sprintf('%1$s <strong>%2$s</strong> %3$s',
-                        $this->l('Hook para la gestión de'),
-                        $this->l('Facturas'),
-                        $this->l('Se asigna la Fecha de factura cuado esta se genere y no con la fecha del pedido. Necesario definir variable '). '<b>'.static::PREFIX . 'ESTADO_FACTURADO</b>.'
-                  ),
 
-                  'name' => 'order_history',
 
-                  'values' => array(
-                        array(
-                           'id' => 'ESTADO_FACTURADO',
-                           'value' => 1,
-                           'label' => $this->l('On')
-                        ),
-                        array(
-                           'id' => 'order_history_off',
-                           'value' => 0,
-                           'label' => $this->l('Off')
-                        )
-                  )
-               ),
-               array(
-                  'form_group_class'=>'grupo-estadofacturado ' . ((bool)\Configuration::get(self::PREFIX.'ORDERHISTORY') ? '' : 'hidden'),
-                  'type'     => 'select', // This is a <select> tag.
-                  'label'    => $this->l('Estado facturado'), // The <label> for this <select> tag.
-                  'desc'   => sprintf(
-                        '%1$s <strong>%2$s</strong>.',
-                        $this->l('Define cuál es el estado FACTURADO necesario para asignar la fecha a la factura. Se asigna a la variable de config '), static::PREFIX . 'ORDERHISTORYSTATE'),
 
-                  'cols' => 3,
-                  'class' => 'sjboverrides',
-                  'name'     => 'id_estado_facturado', // The content of the 'id' attribute of the <select> tag.
-                  'options'  => array(
-                        'id'    => 'id_order_state',
-                        'name'  => 'label',
-                        'query' => $this->list_order_state,
-                  )
-               )
+
+
+
+    // Pretty urls en productos e categorias
+    protected function getFormOverrideRewrite(){
+        return
+        [
+            'type'   => 'switch',
+            'label'  => $this->l('URL Rewrite'),
+            'desc'   => sprintf(
+                '%1$s <strong>%2$s</strong> %3$s',
+                $this->l('Override de '),
+                $this->l('PS_ROUTES'),
+                $this->l('para limpiar las URLs y eque no contengas referencia a los id\'s de producto y/o categoria.')
             ),
-            'submit' => array(
-               'title' => $this->l('Save'),
-               'name' => 'sjbSubmitConfig',
-               'class' => 'sjbsubmit btn btn-default pull-right'
-            )
-         )
-      );
-   }
+            //'is_bool' => true,
+            'name'   => 'url_rewrite',
+            'values' => [
+                [
+                    'id'    => 'url_rewrite_on',
+                    'value' => 1,
+                    'label' => $this->l('On'),
+                ],
+                [
+                    'id'    => 'url_rewrite_off',
+                    'value' => 0,
+                    'label' => $this->l('Off'),
+                ],
+            ],
+        ];
 
-   public function getFormOverrides(){
-
-      return array(
-         'form' => array(
-
-               'legend' => array(
-                  'title' => $this->l('Overrides'),
-                  'icon' => 'icon-cog'
-               ),
-
-               'input' => array(
+    }
 
 
-                  array(
-                     'type' => 'switch',
-                     'label' => $this->l('Image Manager'),
-                     'desc' => sprintf(
-                        '%1$s <strong>%2$s</strong> %3$s',
-                        $this->l('Override de clase'),
-                        $this->l('Imagemanager'),
-                        $this->l('para recorte preciso de las imágenes. Añade funcionalidad _sjb para fondo transparente.')),
-                     'name' => 'image_manager',
-                     'values' => array(
-                           array(
-                              'id' => 'image_manager_on',
-                              'value' => 1,
-                              'label' => $this->l('On')
-                           ),
-                           array(
-                              'id' => 'image_manager_off',
-                              'value' => 0,
-                              'label' => $this->l('Off')
-                           )
-                     )
-                  ),
-                     array(
-                     'type' => 'switch',
-                     'label' => $this->l('URL Rewrite'),
-                     'desc' => sprintf(
-                        '%1$s <strong>%2$s</strong> %3$s',
-                        $this->l('Override de '),
-                        $this->l('PS_ROUTES'),
-                        $this->l('para limpiar las URLs y eque no contengas referencia a los id\'s.')
+
+    // Override imageManager **aproveitar
+    public function getFormImagesold(){
+        // Cargar imaxes disponibles
+
+        /*Tamaños de imaxe*/
+        $this->list_imagesizes = array();
+        $imagelist = ImageType::getImagesTypes(null, true); // $type = null, $order_by_size = false
+        // $this->list_imagesizes[] = array('id_image_type' => 0, 'name' => $this->l('No mostrar'));
+
+        foreach ($imagelist as $IL) {
+            $this->list_imagesizes[] = array(
+                'id_image_type' => (int) $IL['id_image_type'],
+                'name' => sprintf('%1$s (<em>%2$s x %3$s</em>)', $IL['name'], $IL['width'], $IL['height']),
+            );
+        }
+
+        $FORM =  [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Imagenes'),
+                    'icon'  => 'icon-cog',
+                ],
+
+                'input'  => [
+
+                    [
+                        'type'   => 'switch',
+                        'label'  => $this->l('Imagenes chulas'),
+                        'desc'   => sprintf('%1$s <strong>%2$s</strong> %3$s',
+                            $this->l('Override de clase'),
+                            $this->l('Imagemanager'),
+                            $this->l('para recorte preciso de las imágenes. Se aplica a por defecto a las imagenes con nombre _sjb')
                         ),
-                     'name' => 'url_rewrite',
-                     //'is_bool' => true,
-                     'values' => array(
-                           array(
-                              'id' => 'url_rewrite_on',
-                              'value' => 1,
-                              'label' => $this->l('On'),
-                           ),
-                           array(
-                              'id' => 'url_rewrite_off',
-                              'value' => 0,
-                              'label' => $this->l('Off'),
-                           ),
-                     ),
-                  ),
 
-                  array(
-                     'form_group_class'=>'grupo-reinstalloverrides alert-danger',
-                     'type' => 'switch',
-                     'label' =>sprintf('<span style="color:#c00">%1$s</span> %2$s',$this->l('REINSTALL'), $this->l('Overrides')),
-                     'desc' => sprintf('<em style="color:#001">%1$s</em>',$this->l('Fuerza la reinstalacion de TODOS los  overrides de este plugin.')),
-                     'name' => 'module_override_reinstall',
-                     'values' => array(
-                           array(
-                              'id' => 'override_reinstall_on',
-                              'value' => 1,
-                              'label' => $this->l('Ejecutar')
-                           ),
-                           array(
-                              'id' => 'override_reinstall_off',
-                              'value' => 0,
-                              'label' => $this->l('Off')
-                           )
-                     )
-                  )
+                        'name'   => 'image_manager',
 
-               ),
+                        'values' => [
+                            [
+                                'id'    => 'image_manager_on',
+                                'value' => 1,
+                                'label' => $this->l('On'),
+                            ],
+                            [
+                                'id'    => 'image_manager_off',
+                                'value' => 0,
+                                'label' => $this->l('Off'),
+                            ],
+                        ],
+                    ],
+                    // Mellox checboxes e si activas, pos a imaxe e ao lado un select co tipo de recorte
+                    // SJB_CROP_HARD, SJB_CROP_AXUSTAR, SJB_CROP_FIT, etc
+                    [
+                        'form_group_class' => 'grupo-imagemanager ' . ((bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER') ? '' : 'hidden'),
+                        'type'             => 'select',                     // This is a <select> tag.
+                        'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
+                        'desc'             => sprintf(
+                            '%1$s <strong>%2$s</strong>.',
+                            $this->l('Selecciona que tipo de miniaturas se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
 
-               'submit' => array(
-                  'title' => $this->l('Save'),
-                  'name' => 'sjbSubmitConfig',
-                  'class' => 'sjbsubmit btn btn-default pull-right'
-               )
-         )
-      );
-   }
+                        'cols'             => 3,
+                        'class'            => 'sjboverrides',
+                        'name'             => 'id_order_history_state', // The content of the 'id' attribute of the <select> tag.
+                        'options'          => [
+                            'id'    => 'id_order_state',
+                            'name'  => 'label',
+                            'query' => $this->list_order_state,
+                        ],
+                    ],
+                ],
+                'submit' => [
+                    'title' => $this->l('Save'),
+                    'name'  => 'sjbSubmitConfig',
+                    'class' => 'sjbsubmit btn btn-default pull-right',
+                ],
+            ],
+        ];
 
-
-
-   public function getFormDebug(){
+        foreach($this->list_imagesizes as $item){
+            // Añadir html e xestionalo pot js e pista??elemetnos js por exemplo???
+        }
 
 
+        $FORM['form']['input'][]= [
+            'form_group_class' => 'grupo-imagemanager ' . ((bool) \Configuration::get(self::PREFIX . 'IMAGEMANAGER') ? '' : 'hidden'),
+            'type'             => 'select',                     // This is a <select> tag.
+            'label'            => $this->l('Imagenes adicionales a procesar'), // The <label> for this <select> tag.
+            'desc'             => sprintf(
+                '%1$s <strong>%2$s</strong>.',
+                $this->l('selecciona que tipo de miniaturas se procesarán de la misma forma '), static::PREFIX . 'ORDERHISTORYSTATE'),
 
-      return array(
-         'form' => array(
-
-               'legend' => array(
-                  'title' => $this->l('Parámetros generales módulo'),
-                  'icon' => 'icon-cog'
-               ),
-
-               'error' => sprintf('<strong>%1$s</strong> %2$s','OJO', $this->l('Parámetros de configuracion y desarrollo')),
-
-               'input' => array(
-
-                  array(
-                     'form_group_class'=>'grupo-clearcache ',
-                     'type' => 'switch',
-                     'label' =>'Vaciar la cache de Prestashop',
-                     'desc' => sprintf('<em style="color:#001">%1$s</em>',$this->l('Si cambias el metodo de regeneración de imagenes puede que tengas que vaciar el cache. Puedes hacerlo desde aquí o bien desde las opciones de Prestashop.')),
-
-                     'name' => 'module_cache_clear',
-
-                     'values' => array(
-                        array(
-                              'id' => 'cache_clear_on',
-                              'value' => 1,
-                              'label' => $this->l('Vaciar')
-                        ),
-                        array(
-                              'id' => 'cache_clear_off',
-                              'value' => 0,
-                              'label' => $this->l('Off')
-                        ))
-                     ),
-
-                     array(
-                        'type' => 'switch',
-                        'label' => $this->l('Debug Mode'),
-                        'desc' => sprintf(
-                              '%1$s <em style="color:#c00">%2$s</em>',
-                              $this->l('If active, module  will log messages to PS registry'),
-                              'PS registry'),
-
-                        'name' => 'debug_enabled',
-
-                        'values' => array(
-                              array(
-                                 'id' => 'debug_enabled_on',
-                                 'value' => 1,
-                                 'label' => $this->l('Yes')
-                              ),
-                              array(
-                                 'id' => 'debug_enabled_off',
-                                 'value' => 0,
-                                 'label' => $this->l('No')
-                        ))
-                     ),
-
-                     array(
-                        'type' => 'switch',
-                        'label' => $this->l('Remove data on uninstall'),
-                        'desc' => $this->l('If set to true, all config data will be removed from database on uninstall.'),
-                        'name' => 'remove_data',
-                        'values' => array(
-                              array(
-                                 'id' => 'remove_data_on',
-                                 'value' => 1,
-                                 'label' => $this->l('Yes')
-                              ),
-                              array(
-                                 'id' => 'remove_data_off',
-                                 'value' => 0,
-                                 'label' => $this->l('No')
-                              )
-                        )
-                     )
-               ),
-
-               'submit' => array(
-                  'title' => $this->l('Save'),
-                  'name' => 'sjbSubmitConfig',
-                  'class' => 'sjbsubmit btn btn-default pull-right'
-
-               )
-         )
-      );
-   }
+            'cols'             => 3,
+            'class'            => 'sjboverrides',
+            'name'             => 'id_order_history_state', // The content of the 'id' attribute of the <select> tag.
+            'options'          => [
+                'id'    => 'id_order_state',
+                'name'  => 'label',
+                'query' => $this->list_order_state,
+            ],
+        ];
 
 
 
-   public function hookActionAdminControllerSetMedia($params){
-      if (\Tools::getValue('controller') == 'AdminModules' && \Tools::getValue('configure') == $this->name) {
-         $this->context->controller->addCSS('//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css', 'all');
-         $this->context->controller->addCSS($this->_path . 'views/admin/admin.css', 'all');
-         $this->context->controller->addJS($this->_path . 'views/admin/admin.js');
-      }
-   }
+
+        return $FORM;
+    }
+    /*
+          _   _                   _
+         | | | |   ___     ___   | | __  ___
+         | |_| |  / _ \   / _ \  | |/ / / __|
+         |  _  | | (_) | | (_) | |   <  \__ \
+         |_| |_|  \___/   \___/  |_|\_\ |___/
 
 
-   public function hookActionOrderStatusPostUpdate($params)
-   {
-            /*
+    */
+
+
+
+
+    public function hookActionAdminControllerSetMedia($params){
+        // Css e js comuns en todo o backedn
+
+        $this->context->controller->addCSS( $this->_path . 'views/admin/comun.css', 'all' );
+    }
+
+
+    // Pasalom a widget
+    /**
+     * Grestionamos o feito de que rpestasgop asigna fecha da factura á fecha do pedidoUndocumented function
+     *
+     * Asignamos fecha da factura cando o pedido pasa o estado definido como FACTURADO
+     *
+     * @param [type] $params
+     * @return void
+     */
+    public function hookActionOrderStatusPostUpdate($params){
+        /*
             $params array(
             'newOrderStatus' => (object) OrderState,
             'oldOrderStatus' => (object) OrderState,
@@ -530,85 +528,80 @@ class sjboverrides extends Module implements WidgetInterface{
             );
             */
 
-      static::debug(__method__);
+        static::debug(__method__);
 
-      $ORDER_HISTORY = (bool) \Configuration::get(self::PREFIX.'ORDERHISTORY');
+        $ORDER_HISTORY = (bool) \Configuration::get(self::PREFIX . 'ORDERHISTORY');
 
-      if(!$ORDER_HISTORY){
-         return;
-      }
+        if (! $ORDER_HISTORY) {
+            return;
+        }
 
-      $ESTADO_FACTURADO =  (int)\Configuration::get(static::PREFIX . 'ORDERHISTORYSTATE');
+        $ESTADO_FACTURADO = (int) \Configuration::get(static::PREFIX . 'ORDERHISTORYSTATE');
 
-      $new_order_state_id = (int)$params['newOrderStatus']->id;
+        $new_order_state_id = (int) $params['newOrderStatus']->id;
 
-      if( $new_order_state_id == $ESTADO_FACTURADO){
-         $order = new Order($params['id_order']);
-         $order->invoice_date = date('Y-m-d H:i:s');
-         $order->update();
-         \ShopUrl::resetMainDomainCache();
-         static::debug('Fecha asignada a factura');
-      }
-   }
+        if ($new_order_state_id == $ESTADO_FACTURADO) {
+            $order               = new Order($params['id_order']);
+            $order->invoice_date = date('Y-m-d H:i:s');
+            $order->update();
+            \ShopUrl::resetMainDomainCache();
+            static::debug('Fecha asignada a factura');
+        }
+    }
 
-   /*
+    /*
             __        __  _       _                  _
             \ \      / / (_)   __| |   __ _    ___  | |_   ___
-            \ \ /\ / /  | |  / _` |  / _` |  / _ \ | __| / __|
-            \ V  V /   | | | (_| | | (_| | |  __/ | |_  \__ \
+             \ \ /\ / /  | |  / _` |  / _` |  / _ \ | __| / __|
+              \ V  V /   | | | (_| | | (_| | |  __/ | |_  \__ \
                \_/\_/    |_|  \__,_|  \__, |  \___|  \__| |___/
-                                    |___/
+                                      |___/
 
-      Debes usar o interface PrestaShop\PrestaShop\Core\Module\WidgetInterface
+        Debes usar o interface PrestaShop\PrestaShop\Core\Module\WidgetInterface
 
-      e definir 2 metodos: renderWidget e getWidgetVariable
+        e definir 2 metodos: renderWidget e getWidgetVariable
 
-      Podes usar o widgets de 2 formas:
+        Podes usar o widgets de 2 formas:
 
-         <!-- php-->
-         Hook::exec($hook_name)
+            <!-- php-->
+            Hook::exec($hook_name)
             ou
-         <!-- smarty -->
+            <!-- smarty -->
             {hook h='<hook_name>'}
 
-      ou podes usar metodo novo:
+        ou podes usar metodo novo:
 
-         Hook::coreRenderWidget(Module $module, $hook_name, $params);
+            Hook::coreRenderWidget(Module $module, $hook_name, $params);
 
-         ou
+            ou
 
-         <!-- ( smarty metodo 1) Generic call (metodo 1)-->
-         {widget name='<module_name>'}
+            <!-- ( smarty metodo 1) Generic call (metodo 1)-->
+            {widget name='<module_name>'}
 
+            <!-- ( smarty metodo 2) Call with a hook name -->
+            {widget name='<module_name>' hook='<hook_name>'}
 
-         <!-- ( smarty metodo 2) Call with a hook name -->
-         {widget name='<module_name>' hook='<hook_name>'}
+        */
 
+    // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
+    //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
+    public function renderWidget($hookName = null, array $configuration = [])
+    {
 
-      */
+        switch ($hookName) {
 
-   // https://devdocs.prestashop-project.org/8/modules/concepts/widgets/
-   //Si implementas estos dejemplo:  debes hacer la llamada en el tpl!!
-   public function renderWidget($hookName = null, array $configuration = []){
+            default:
+                return '<p>' . $hookName . ' <strong style="color:#c00">DESCONOCIDO</strong>.</p>';
+                break;
 
-      switch($hookName){
+        }
+    }
 
-
-         default:
-            return '<p>'.$hookName.' <strong style="color:#c00">DESCONOCIDO</strong>.</p>';
-         break;
-
-      }
-   }
-
-
-
-   public function getWidgetVariables($hookName = null , array $configuration = [] ) {
-      return [
-         'Variable 1' => 'Valor 1',
-         'Variable 2'=> 'Valor 2'
-      ];
-   }
-
-
+    public function getWidgetVariables($hookName = null, array $configuration = [])
+    {
+        return [
+            'Variable 1' => 'Valor 1',
+            'Variable 2' => 'Valor 2',
+        ];
+    }
 }

@@ -13,13 +13,8 @@ Thumbs.db
 *.log
 *.xml
 *.zip
+*.lock
 #################
 # Folders.
 #################
-fuentes/
-<<<<<<< HEAD
-=======
-
->>>>>>> 2.0
-
-
+vendor/
