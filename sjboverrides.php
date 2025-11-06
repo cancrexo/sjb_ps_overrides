@@ -11,7 +11,7 @@
  *
  * MÓDULO PARA INSERTAR OVERRIDES
  *
- * @author Cancrexo <dani@sjbdixital.es>
+ * @author Cancrexo <cancrexo@gmail.com>
  * @copyright SJB dixital
  * @license   Commercial License. All right reserved
  */
@@ -30,7 +30,7 @@ class sjboverrides extends Module implements WidgetInterface
         // 'actionFrontControllerSetMedia',
         // 'actionFrontControllerInitAfter',
         // 'actionFrontControllerSetVariables'
-        'displayProductBuilder',
+        // 'displayProductBuilder',
         // 'displayBeforeBodyClosingTag'
     ];
 
@@ -572,13 +572,15 @@ class sjboverrides extends Module implements WidgetInterface
 
         Podes usar o widgets de 2 formas:
 
+            METODO ANTIGO:
             <!-- php-->
             Hook::exec($hook_name)
             ou
             <!-- smarty -->
             {hook h='<hook_name>'}
 
-        ou podes usar metodo novo:
+        ou
+        METODO NOVO:
 
             Hook::coreRenderWidget(Module $module, $hook_name, $params);
 
@@ -591,10 +593,13 @@ class sjboverrides extends Module implements WidgetInterface
             {widget name='<module_name>' hook='<hook_name>'}
 
 
-                OLLO:
-                Lembra
-                Si enganchas o modulo nun hook calquera no backend, si o modulo non ten ese metodo hook definido
-                enton sempre pasa por renderWidget e amosarase a no ser que discrimines por metodo 2 (hook name)
+            OLLO:
+
+            lembra
+            Si enganchas o modulo tipo widget nun hook calquera no backend,
+            si o modulo non ten ese metodo hook definido,
+            enton sempre pasa por renderWidget e xa dependerá do que fags ali:
+            amosarase a no ser que discrimines por metodo 2 (hook name)
 
 
 
