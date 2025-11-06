@@ -299,23 +299,24 @@ class sjboverrides extends Module implements WidgetInterface
         PrestaShopLogger::addLog(__method__);
         $this->_clearCache('*');
 
-        if (! parent::uninstall()) {
-            return false;
-        }
-        PrestaShopLogger::addLog('parent uninstall OK');
-
         if(!$this->uninstallModuleTabs()){
-            return false;
+            PrestaShopLogger::addLog('Error uninstalling module tabs', 3);
+            // return false; // Podemos decidir si continuar o no
+        } else {
+            PrestaShopLogger::addLog('uninstallModuleTabs OK');
         }
-        PrestaShopLogger::addLog('uninstallModuleTabs OK');
-
-        foreach ($this->_hooks as $hook) {
-            $this->unregisterHook($hook);
-        }
-        PrestaShopLogger::addLog('unregisterHooks OK');
 
         \Configuration::deleteByName(self::PREFIX . 'general_config');
         PrestaShopLogger::addLog('delete general_config OK');
+
+        // La llamada a parent::uninstall() ya se encarga de desregistrar los hooks.
+        // Debe ser la última llamada para asegurar que las tareas personalizadas se completan primero.
+        if (!parent::uninstall()) {
+            PrestaShopLogger::addLog('parent::uninstall() failed', 3);
+            return false;
+        }
+
+        PrestaShopLogger::addLog('parent::uninstall() OK');
         return true;
     }
 
