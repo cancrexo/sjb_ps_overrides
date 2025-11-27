@@ -43,9 +43,13 @@ class Manufacturer extends ManufacturerCore
         if (! Module::isEnabled('sjboverrides') || ! ($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))) {
             return getManufacturers($getNbProducts, $idLang, $active, $p, $n, $allGroup, $group_by, $withProduct);
         }
+        $context = Context::getContext();
+        $id_employee = isset($context->employee) ? (int)$context->employee->id : 0;
+
+        // \PrestaShopLogger::addLog('el employee  ' . $id_employee);
 
         $flag_marca_oculta = $SJBOVERRIDES->getSingleData('general', 'manufacturer_hidden_flag'); // o key pode ir con ou sin underscores (xa se limpan)
-        $flag_marca_oculta = ($flag_marca_oculta === false) ? null : $flag_marca_oculta;
+        $flag_marca_oculta = ($flag_marca_oculta === false || (int)$id_employee) ? null : $flag_marca_oculta;
 
         $sql = '
 		SELECT m.*, ml.`description`, ml.`short_description`,  ml.`meta_title`, ml.`meta_keywords`, ml.`meta_description`
