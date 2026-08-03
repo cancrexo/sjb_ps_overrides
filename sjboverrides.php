@@ -49,6 +49,8 @@ class sjboverrides extends Module implements WidgetInterface
         'hook_order_history_active'     => [0], // si o hook esta activado
         'id_order_history_state'        => [-1],
 
+        // Sistema SJB de clientes / direccións (listados propios)
+        'hook_clientes_active'          => [0],
 
         'url_rewrite'                   => [0], // si o hook esta activado
         'debug_enabled'                 => [1],
@@ -87,7 +89,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.3.0';
+        $this->version                = '2.4.0';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -242,11 +244,89 @@ class sjboverrides extends Module implements WidgetInterface
         // Creamos tabs
         $resultado = $this->createTabs($meusTabs, $improve_tab);
 
-        if($resultado)
-        PrestaShopLogger::addLog(__method__ .': Tabs creadas con éxito');
+        if ($resultado) {
+            // Tabs SJB clientes/direccións (ocultas por defecto)
+            $resultado = $this->syncClientesMenu(false);
+            PrestaShopLogger::addLog(__method__ . ': Tabs creadas con éxito');
+        }
 
         return $resultado;
 
+    }
+
+    /**
+     * Crea (se faltan) e sincroniza a visibilidade do menú:
+     * ON  -> oculta AdminCustomers/AdminAddresses e amosa SJB clientes/direccións
+     * OFF -> restaura nativos e oculta os SJB
+     *
+     * @param bool|null $enabled null = ler da configuración gardada
+     * @return bool
+     */
+    public function syncClientesMenu($enabled = null)
+    {
+        if ($enabled === null) {
+            $enabled = (bool) $this->getSingleData('general', 'hook_clientes_active');
+        }
+
+        $parentId = (int) Tab::getIdFromClassName('AdminParentCustomer');
+        if (!$parentId) {
+            static::debug('AdminParentCustomer non atopado', 3);
+            return false;
+        }
+        $parentTab = new Tab($parentId);
+
+        $sjbTabs = [
+            [
+                'nombre'     => $this->l('SJB clientes'),
+                'class_name' => 'AdminSjbClientes',
+            ],
+            [
+                'nombre'     => $this->l('SJB direcciones'),
+                'class_name' => 'AdminSjbDirecciones',
+            ],
+        ];
+
+        foreach ($sjbTabs as $T) {
+            $idTab = (int) Tab::getIdFromClassName($T['class_name']);
+            if (!$idTab) {
+                $creado = $this->createTabs([[
+                    'nombre'     => $T['nombre'],
+                    'class_name' => $T['class_name'],
+                    'enabled'    => 1,
+                    'active'     => $enabled ? 1 : 0,
+                ]], $parentTab);
+                if (!$creado) {
+                    return false;
+                }
+                continue;
+            }
+
+            $tab = new Tab($idTab);
+            $tab->active = $enabled ? 1 : 0;
+            if (!$tab->update()) {
+                static::debug('Erro actualizando tab ' . $T['class_name'], 3);
+                return false;
+            }
+        }
+
+        foreach (['AdminCustomers', 'AdminAddresses'] as $className) {
+            $idTab = (int) Tab::getIdFromClassName($className);
+            if (!$idTab) {
+                continue;
+            }
+            $tab = new Tab($idTab);
+            $tab->active = $enabled ? 0 : 1;
+            if (!$tab->update()) {
+                static::debug('Erro actualizando tab nativo ' . $className, 3);
+                return false;
+            }
+        }
+
+        if (method_exists('Tab', 'resetStaticCache')) {
+            Tab::resetStaticCache();
+        }
+
+        return true;
     }
 
     // Instalación recursiva de tabs
@@ -298,6 +378,9 @@ class sjboverrides extends Module implements WidgetInterface
     public function uninstall() {
         PrestaShopLogger::addLog(__method__);
         $this->_clearCache('*');
+
+        // Restaurar menú nativo de clientes/direccións antes de borrar tabs do módulo
+        $this->syncClientesMenu(false);
 
         if(!$this->uninstallModuleTabs()){
             PrestaShopLogger::addLog('Error uninstalling module tabs', 3);
@@ -512,8 +595,50 @@ class sjboverrides extends Module implements WidgetInterface
 
     public function hookActionAdminControllerSetMedia($params){
         // Css e js comuns en todo o backedn
+        $this->context->controller->addCSS($this->_path . 'views/admin/comun.css', 'all');
 
-        $this->context->controller->addCSS( $this->_path . 'views/admin/comun.css', 'all' );
+        // Autocomplete cliente no alta de dirección (só se o sistema SJB clientes está ON)
+        if ((bool) $this->getSingleData('general', 'hook_clientes_active')) {
+            $this->loadAddressCustomerAutocompleteAssets();
+        }
+    }
+
+    /**
+     * Assets do autocomplete de cliente na ficha nativa de dirección.
+     */
+    protected function loadAddressCustomerAutocompleteAssets()
+    {
+        $requestUri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $ctrlName = isset($this->context->controller->controller_name)
+            ? (string) $this->context->controller->controller_name
+            : '';
+
+        $isAddressPage = ($ctrlName === 'AdminAddresses')
+            || (stripos($requestUri, '/sell/addresses') !== false);
+
+        if (!$isAddressPage) {
+            return;
+        }
+
+        $searchUrl = $this->context->link->getAdminLink('AdminCustomers', true, [
+            'route' => 'admin_customers_search',
+            'sf2' => 1,
+        ]);
+
+        Media::addJsDef([
+            'sjbAddressCustomerSearch' => [
+                'searchUrl' => $searchUrl,
+                'label' => $this->l('Buscar cliente'),
+                'placeholder' => $this->l('Nombre, apellidos o email…'),
+                'help' => $this->l('Escribe para buscar y selecciona un cliente. Se rellenará el email oculto.'),
+                'noResults' => $this->l('Sin resultados'),
+                'error' => $this->l('Error al buscar clientes'),
+            ],
+        ]);
+
+        $this->context->controller->addJS(
+            $this->_path . 'views/admin/address-customer-autocomplete.js'
+        );
     }
 
 

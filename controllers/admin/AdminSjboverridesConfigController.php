@@ -91,6 +91,10 @@ use \Sjboverrides\SJB_PSTools;
             // Grabar
             $this->module->saveData('general', $formvalues);
 
+            // Sincronizar menú SJB clientes / direccións nativas
+            $this->module->syncClientesMenu(
+                (bool) ($formvalues['hookclientesactive'] ?? 0)
+            );
 
             if ((int) \Tools::getValue('module_override_reinstall')) {
                 $overrides = $this->module->uninstallOverrides() && $this->module->installOverrides();
@@ -162,6 +166,7 @@ use \Sjboverrides\SJB_PSTools;
                 // $this->getFormOverrideRewrite(),
                 $this->getFormOverrideProducto(),
                 $this->getFormOverrideManufacturer(),
+                $this->getFormOverrideClientes(),
                 // $this->getFormOverrideReinstalls(),
                 $this->getFormDebug(),
             ]
@@ -401,6 +406,51 @@ use \Sjboverrides\SJB_PSTools;
         ];
         // var_dump($form);
         return ['form'=>$form];
+    }
+
+    /**
+     * Ficha Clientes: activa/desactiva o sistema SJB de clientes e direccións
+     */
+    protected function getFormOverrideClientes()
+    {
+        $form = [
+            'legend' => [
+                'title' => $this->l('Clientes'),
+                'icon'  => 'icon-user',
+            ],
+            'input'  => [
+                [
+                    'type'   => 'switch',
+                    'label'  => $this->l('Sistema SJB de clientes'),
+                    'desc'   => sprintf(
+                        '%1$s <strong>%2$s</strong> %3$s',
+                        $this->l('Si está'),
+                        $this->l('ON'),
+                        $this->l('se ocultan los listados nativos de clientes y direcciones y se muestran SJB clientes / SJB direcciones.')
+                    ),
+                    'name'   => 'general_hookclientesactive',
+                    'values' => [
+                        [
+                            'id'    => 'clientes_on',
+                            'value' => 1,
+                            'label' => $this->l('On'),
+                        ],
+                        [
+                            'id'    => 'clientes_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'name'  => 'sjbSubmitConfig',
+                'class' => 'sjbsubmit btn btn-default pull-right',
+            ],
+        ];
+
+        return ['form' => $form];
     }
 
 
