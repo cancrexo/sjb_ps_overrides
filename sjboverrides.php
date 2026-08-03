@@ -634,6 +634,13 @@ class sjboverrides extends Module implements WidgetInterface
                 'noResults' => $this->l('Sin resultados'),
                 'error' => $this->l('Error al buscar clientes'),
             ],
+            'sjbAddressStateSearch' => [
+                'label' => $this->l('Provincia'),
+                'placeholder' => $this->l('Escribe el nombre de la provincia…'),
+                'help' => $this->l('Busca y selecciona la provincia. Se actualizará el estado nativo oculto.'),
+                'noResults' => $this->l('Sin provincias coincidentes'),
+            ],
+            'sjbAddressAliasDefault' => $this->l('Mi nueva dirección.'),
         ]);
 
         $this->context->controller->addJS(

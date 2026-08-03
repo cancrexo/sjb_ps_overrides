@@ -17,7 +17,7 @@ class SJB_PSTools{
     $_recursive_count = 0,
     $_recursive_array = array(); // para chamadas recursivas
 
-    public  function getInstance(){
+    public static function getInstance(){
         if (!isset(self::$instancia)) {
             self::$instancia = new self;
         }

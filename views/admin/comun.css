@@ -17,35 +17,43 @@
 }
 
 /* Alta dirección: ocultar email nativo (sigue en el form) */
-.form-group.sjb-customer-email-hidden {
+.form-group.sjb-customer-email-hidden,
+.form-group.sjb-state-native-hidden,
+.form-group.sjb-address2-hidden {
     display: none !important;
 }
 
-.sjb-customer-autocomplete .col-sm {
+.sjb-customer-autocomplete .col-sm,
+.sjb-ac-widget .col-sm {
     position: relative;
 }
 
-.sjb-customer-autocomplete .sjb-ac-label-icon {
+.sjb-customer-autocomplete .sjb-ac-label-icon,
+.sjb-ac-widget .sjb-ac-label-icon {
     font-size: 18px;
     vertical-align: middle;
     color: #6c868e;
     margin-right: 2px;
 }
 
-.sjb-customer-autocomplete .sjb-ac-input-group {
+.sjb-customer-autocomplete .sjb-ac-input-group,
+.sjb-ac-widget .sjb-ac-input-group {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.sjb-customer-autocomplete .sjb-ac-input {
+.sjb-customer-autocomplete .sjb-ac-input,
+.sjb-ac-widget .sjb-ac-input {
     border-right: 0;
 }
 
-.sjb-customer-autocomplete .sjb-ac-input:focus {
+.sjb-customer-autocomplete .sjb-ac-input:focus,
+.sjb-ac-widget .sjb-ac-input:focus {
     border-color: #25b9d7;
     box-shadow: none;
 }
 
-.sjb-customer-autocomplete .sjb-ac-addon {
+.sjb-customer-autocomplete .sjb-ac-addon,
+.sjb-ac-widget .sjb-ac-addon {
     background: #fafbfc;
     border-color: #bbcdd2;
     color: #6c868e;
@@ -53,40 +61,47 @@
     justify-content: center;
 }
 
-.sjb-customer-autocomplete.sjb-ac-loading .sjb-ac-addon {
+.sjb-customer-autocomplete.sjb-ac-loading .sjb-ac-addon,
+.sjb-ac-widget.sjb-ac-loading .sjb-ac-addon {
     color: #25b9d7;
 }
 
-.sjb-customer-autocomplete.sjb-ac-selected .sjb-ac-addon {
+.sjb-customer-autocomplete.sjb-ac-selected .sjb-ac-addon,
+.sjb-ac-widget.sjb-ac-selected .sjb-ac-addon {
     background: #dff0d8;
     border-color: #c3e0b5;
     color: #70b580;
 }
 
-.sjb-customer-autocomplete.sjb-ac-selected .sjb-ac-input {
+.sjb-customer-autocomplete.sjb-ac-selected .sjb-ac-input,
+.sjb-ac-widget.sjb-ac-selected .sjb-ac-input {
     border-color: #c3e0b5;
     background: #f7fbf5;
 }
 
-.sjb-customer-autocomplete .sjb-ac-search-icon {
+.sjb-customer-autocomplete .sjb-ac-search-icon,
+.sjb-ac-widget .sjb-ac-search-icon {
     font-size: 20px;
     line-height: 1;
 }
 
-.sjb-customer-autocomplete .sjb-ac-help {
+.sjb-customer-autocomplete .sjb-ac-help,
+.sjb-ac-widget .sjb-ac-help {
     display: flex;
     align-items: flex-start;
     gap: 4px;
     margin-top: 6px;
 }
 
-.sjb-customer-autocomplete .sjb-ac-help-icon {
+.sjb-customer-autocomplete .sjb-ac-help-icon,
+.sjb-ac-widget .sjb-ac-help-icon {
     font-size: 14px;
     line-height: 1.4;
     color: #6c868e;
 }
 
-.sjb-customer-autocomplete .sjb-customer-results {
+.sjb-customer-autocomplete .sjb-customer-results,
+.sjb-ac-widget .sjb-customer-results {
     position: absolute;
     z-index: 1000;
     left: 15px;
@@ -100,7 +115,8 @@
     background: #fff;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item {
+.sjb-customer-autocomplete .sjb-ac-item,
+.sjb-ac-widget .sjb-ac-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -110,29 +126,35 @@
     border-bottom: 1px solid #edf1f2;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item:last-child {
+.sjb-customer-autocomplete .sjb-ac-item:last-child,
+.sjb-ac-widget .sjb-ac-item:last-child {
     border-bottom: 0;
 }
 
 .sjb-customer-autocomplete .sjb-ac-item:hover,
-.sjb-customer-autocomplete .sjb-ac-item:focus {
+.sjb-customer-autocomplete .sjb-ac-item:focus,
+.sjb-ac-widget .sjb-ac-item:hover,
+.sjb-ac-widget .sjb-ac-item:focus {
     background: #f4f9fb;
     color: inherit;
     text-decoration: none;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item-main {
+.sjb-customer-autocomplete .sjb-ac-item-main,
+.sjb-ac-widget .sjb-ac-item-main {
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item-name {
+.sjb-customer-autocomplete .sjb-ac-item-name,
+.sjb-ac-widget .sjb-ac-item-name {
     font-weight: 600;
     color: #363a41;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item-email {
+.sjb-customer-autocomplete .sjb-ac-item-email,
+.sjb-ac-widget .sjb-ac-item-email {
     font-size: 12px;
     color: #6c868e;
     overflow: hidden;
@@ -140,13 +162,16 @@
     white-space: nowrap;
 }
 
-.sjb-customer-autocomplete .sjb-ac-item-badge {
+.sjb-customer-autocomplete .sjb-ac-item-badge,
+.sjb-ac-widget .sjb-ac-item-badge {
     flex-shrink: 0;
     font-weight: 500;
 }
 
 .sjb-customer-autocomplete .sjb-ac-empty,
-.sjb-customer-autocomplete .sjb-ac-error {
+.sjb-customer-autocomplete .sjb-ac-error,
+.sjb-ac-widget .sjb-ac-empty,
+.sjb-ac-widget .sjb-ac-error {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -154,13 +179,17 @@
     border: 0;
 }
 
-.sjb-customer-autocomplete .sjb-ac-error {
+.sjb-customer-autocomplete .sjb-ac-error,
+.sjb-ac-widget .sjb-ac-error {
     color: #c05c67;
 }
 
 .sjb-customer-autocomplete .sjb-ac-empty .material-icons,
-.sjb-customer-autocomplete .sjb-ac-error .material-icons {
+.sjb-customer-autocomplete .sjb-ac-error .material-icons,
+.sjb-ac-widget .sjb-ac-empty .material-icons,
+.sjb-ac-widget .sjb-ac-error .material-icons {
     font-size: 18px;
 }
+
 
 
