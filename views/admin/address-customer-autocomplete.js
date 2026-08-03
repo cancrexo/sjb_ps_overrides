@@ -87,13 +87,9 @@
         }
 
         var cfg = sjbAddressStateSearch;
+        // En PS, .js-address-state-select está no propio form-group do select:
+        // non podemos meter o widget dentro e ocultar o grupo (ocultaríase tamén).
         var $nativeGroup = $state.closest('.form-group');
-        var $stateBlock = $state.closest('.js-address-state-select');
-        if (!$stateBlock.length) {
-            $stateBlock = $nativeGroup;
-        }
-
-        $nativeGroup.addClass('sjb-state-native-hidden');
 
         var $block = buildSearchWidget({
             id: 'sjb_state_search',
@@ -103,12 +99,31 @@
             placeholder: cfg.placeholder,
             help: cfg.help
         });
-        $stateBlock.prepend($block);
+        $nativeGroup.before($block);
+        $nativeGroup.addClass('sjb-state-native-hidden');
 
         var $input = $('#sjb_state_search');
         var $addonIcon = $block.find('.sjb-ac-search-icon');
 
-        // Valor inicial si ya hay provincia seleccionada
+        function hasStateOptions() {
+            return $state.find('option').filter(function () {
+                return $(this).val() !== '' && $(this).val() != null;
+            }).length > 0;
+        }
+
+        function refreshVisibility() {
+            if (hasStateOptions()) {
+                $block.show();
+            } else {
+                $block.hide();
+                $input.val('');
+                $block.removeClass('sjb-ac-selected');
+                $addonIcon.text('search');
+                $('#sjb_state_results').hide().empty();
+            }
+        }
+
+        refreshVisibility();
         syncStateInputFromSelect($state, $input, $block, $addonIcon);
 
         bindLocalSearch($block, {
@@ -152,7 +167,7 @@
             emptyText: cfg.noResults
         });
 
-        // Al cambiar país, PS recarga opciones del select
+        // Al cambiar país, PS recarga opciones do select
         $('#customer_address_id_country').on('change', function () {
             $input.val('');
             $block.removeClass('sjb-ac-selected');
@@ -162,11 +177,12 @@
             var tries = 0;
             var waitOptions = setInterval(function () {
                 tries++;
-                if ($state.find('option').length > 1 || tries > 20) {
+                if (tries >= 3 || tries > 20) {
                     clearInterval(waitOptions);
+                    refreshVisibility();
                     syncStateInputFromSelect($state, $input, $block, $addonIcon);
                 }
-            }, 150);
+            }, 200);
         });
     }
 

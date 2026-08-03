@@ -24,9 +24,22 @@ class AdminSjbClientesController extends ModuleAdminController
 
         $this->meta_title = $this->toolbar_title = $this->l('SJB clientes');
 
+        // Filtro de tienda para subconsultas de pedidos (igual que el grid nativo)
+        $ordersShopSql = '';
+        if (Shop::isFeatureActive() && Shop::getContext() === Shop::CONTEXT_SHOP) {
+            $ordersShopSql = ' AND o.`id_shop` = ' . (int) $this->context->shop->id;
+        }
+
         $this->_select = 'a.`id_customer`, a.`firstname`, a.`lastname`, a.`email`, a.`active`, a.`date_add`,'
             . ' (SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'address` adr'
-            . ' WHERE adr.`id_customer` = a.`id_customer` AND adr.`deleted` = 0) AS `nb_addresses`';
+            . ' WHERE adr.`id_customer` = a.`id_customer` AND adr.`deleted` = 0) AS `nb_addresses`,'
+            . ' (SELECT IFNULL(SUM(o.`total_paid_real` / IFNULL(o.`conversion_rate`, 1)), 0)'
+            . ' FROM `' . _DB_PREFIX_ . 'orders` o'
+            . ' WHERE o.`id_customer` = a.`id_customer` AND o.`valid` = 1' . $ordersShopSql
+            . ') AS `total_spent`,'
+            . ' (SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders` o'
+            . ' WHERE o.`id_customer` = a.`id_customer` AND o.`valid` = 1' . $ordersShopSql
+            . ') AS `nb_orders`';
 
         $this->_where = ' AND a.`deleted` = 0';
 
@@ -65,6 +78,13 @@ class AdminSjbClientesController extends ModuleAdminController
                 'type' => 'datetime',
                 'filter_key' => 'a!date_add',
             ],
+            'total_spent' => [
+                'title' => $this->l('Compras online'),
+                'align' => 'text-center',
+                'class' => 'fixed-width-md',
+                'search' => false,
+                'callback' => 'displayTotalSpentBadge',
+            ],
             'nb_addresses' => [
                 'title' => $this->l('Direcciones'),
                 'align' => 'text-center',
@@ -95,6 +115,7 @@ class AdminSjbClientesController extends ModuleAdminController
 
     /**
      * Badge nativo: success si hay direcciones, danger si no.
+     * Clic -> listado SJB direcciones de ese cliente.
      *
      * @param mixed $value
      * @param array $tr
@@ -104,8 +125,46 @@ class AdminSjbClientesController extends ModuleAdminController
     {
         $n = (int) $value;
         $class = $n > 0 ? 'badge-success' : 'badge-danger';
+        $idCustomer = (int) ($tr['id_customer'] ?? 0);
+        $href = $this->context->link->getAdminLink('AdminSjbDirecciones')
+            . '&id_customer=' . $idCustomer;
 
-        return '<span class="badge ' . $class . '">' . $n . '</span>';
+        return '<a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '" title="'
+            . htmlspecialchars($this->l('Ver direcciones'), ENT_QUOTES, 'UTF-8') . '">'
+            . '<span class="badge ' . $class . '">' . $n . '</span></a>';
+    }
+
+    /**
+     * Importe acumulado (badge) + nº de pedidos debajo.
+     * Ordenación del listado por total_spent (importe).
+     *
+     * @param mixed $value
+     * @param array $tr
+     * @return string
+     */
+    public function displayTotalSpentBadge($value, $tr)
+    {
+        $amount = (float) $value;
+        $nbOrders = isset($tr['nb_orders']) ? (int) $tr['nb_orders'] : 0;
+        $class = $amount > 0 ? 'badge-success' : 'badge-danger';
+
+        if (method_exists($this->context, 'getCurrentLocale')) {
+            $formatted = $this->context->getCurrentLocale()->formatPrice(
+                $amount,
+                $this->context->currency->iso_code
+            );
+        } else {
+            $formatted = Tools::displayPrice($amount);
+        }
+
+        if ($nbOrders === 1) {
+            $ordersLabel = $this->l('1 pedido');
+        } else {
+            $ordersLabel = sprintf($this->l('%d pedidos'), $nbOrders);
+        }
+
+        return '<span class="badge ' . $class . '">' . htmlspecialchars($formatted, ENT_QUOTES, 'UTF-8') . '</span>'
+            . '<br><small class="text-muted">' . htmlspecialchars($ordersLabel, ENT_QUOTES, 'UTF-8') . '</small>';
     }
 
     public function initPageHeaderToolbar()
