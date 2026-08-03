@@ -26,6 +26,7 @@ class sjboverrides extends Module implements WidgetInterface
 
     protected $_hooks = [
         'actionAdminControllerSetMedia',
+        'displayBackOfficeHeader',
         'actionOrderStatusPostUpdate',
         // 'actionFrontControllerSetMedia',
         // 'actionFrontControllerInitAfter',
@@ -227,7 +228,8 @@ class sjboverrides extends Module implements WidgetInterface
 
         $meusTabs = [
             [
-                'nombre'     => sprintf('%1$s -%2$s',$this->l('SJB Overrides'),  $this->version),
+                // Versión no menú: <sup> via comun.js (non no nome do Tab)
+                'nombre'     => $this->l('SJB Overrides'),
                 'class_name' => 'AdminSjboverridesConfig',
                 'enabled'    => 1,
                 'active'     => 1,
@@ -597,10 +599,39 @@ class sjboverrides extends Module implements WidgetInterface
         // Css e js comuns en todo o backedn
         $this->context->controller->addCSS($this->_path . 'views/admin/comun.css', 'all');
 
+        // Asegurar hook do <style> da versión (instalacións que xa tiñan o módulo)
+        if (method_exists($this, 'isRegisteredInHook')
+            && !$this->isRegisteredInHook('displayBackOfficeHeader')
+        ) {
+            $this->registerHook('displayBackOfficeHeader');
+        }
+
         // Autocomplete cliente no alta de dirección (só se o sistema SJB clientes está ON)
         if ((bool) $this->getSingleData('general', 'hook_clientes_active')) {
             $this->loadAddressCustomerAutocompleteAssets();
         }
+    }
+
+    /**
+     * Estilo en línea: versión do módulo no menú (tipo <sup>), en todo o BO.
+     *
+     * @return string
+     */
+    public function hookDisplayBackOfficeHeader()
+    {
+        $version = str_replace(['\\', '"'], ['\\\\', '\\"'], (string) $this->version);
+
+        return '<style id="sjboverrides-menu-version">'
+            . '#subtab-AdminSjboverridesConfig > a::after{'
+            . 'content:"' . $version . '";'
+            . 'font-size:0.65em;'
+            . 'font-weight:600;'
+            . 'margin-left:2px;'
+            . 'opacity:0.85;'
+            . 'vertical-align:super;'
+            . 'line-height:0;'
+            . '}'
+            . '</style>';
     }
 
     /**

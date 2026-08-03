@@ -7,14 +7,21 @@
 /* #subtab-AdminSjboverridesConfig{
    border:1px solid #fff;
 } */
- #subtab-AdminSjboverridesConfig > a >i:first-of-type{
+#subtab-AdminSjboverridesConfig > a > i:first-of-type {
     display: none;
- }
- #subtab-AdminSjboverridesConfig > a:before{
-    content: url(../../logo-menu.png);
-    width: 22px;
-    height: 22px;
 }
+/* content:url() ignora width/height; usamos background para escalar el PNG 128x128 */
+#subtab-AdminSjboverridesConfig > a:before {
+    content: '';
+    display: inline-block;
+    width: 19px;
+    height: 19px;
+    margin-right: 6px;
+    vertical-align: middle;
+    background: url(../../logo.png) center / contain no-repeat;
+}
+
+/* Versión (::after content) inxéctase en línea desde hookDisplayBackOfficeHeader */
 
 /* Alta dirección: ocultar email nativo (sigue en el form) */
 .form-group.sjb-customer-email-hidden,

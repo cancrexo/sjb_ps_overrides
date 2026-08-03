@@ -1,4 +1,3 @@
-
 /**
  * Comunes en backend
  */
@@ -53,7 +52,7 @@ const menuLink_Faceted = ()=>{
 // Etiquetas de busqueda
 const menuLink_Etiquetas = ()=>{
     //https://deportesomar.com/pantalan/index.php?controller=AdminFeatures&updatefeature=&id_feature=8&token=54b077dc49d2b61ef7330830d7590de7
-    //http://ps17.lan/adminweb/index.php?controller=AdminFeatures&updatefeature=&id_feature=1&token=f1673f5d5fade39c3af971ced91a2221
+    //http://ps17.lan/adminweb/index.php?controller=AdminFeatures&updatefeature=&id_feature=1&token=f1675f5d5fade39c3af971ced91a2221
     // http://ps17.lan/adminweb/index.php?controller=AdminAttributesGroups&token=533ed22c1653c655eadb11b2f6268059
     //http://ps17.lan/adminweb/index.php?controller=AdminAttributesGroups&token=533ed22c1653c655eadb11b2f6268059
 

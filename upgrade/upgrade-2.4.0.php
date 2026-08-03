@@ -41,12 +41,12 @@ function upgrade_module_2_4_0($module)
             throw new Exception('syncClientesMenu fallou no upgrade 2.4.0');
         }
 
-        // 3. Actualizar nome da tab de configuración
+        // 3. Actualizar nome da tab (sen versión; a versión vai en <sup> via JS)
         $idTab = (int) Tab::getIdFromClassName('AdminSjboverridesConfig');
         if ($idTab) {
             $tab = new Tab($idTab);
             if (Validate::isLoadedObject($tab)) {
-                $newName = sprintf('%1$s -%2$s', 'SJB Overrides', $version);
+                $newName = 'SJB Overrides';
                 foreach (Language::getLanguages(false) as $lang) {
                     $tab->name[(int) $lang['id_lang']] = $newName;
                 }
