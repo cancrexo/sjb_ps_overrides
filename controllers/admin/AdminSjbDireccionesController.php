@@ -44,12 +44,24 @@ class AdminSjbDireccionesController extends ModuleAdminController
         $idLang = (int) $this->context->language->id;
 
         // customer_filter: busca por nombre cliente, nombre dirección, email e id_customer
-        $this->_select = 'a.`id_address`, a.`id_customer`, a.`alias`,'
-            . ' a.`dni`, a.`vat_number`,'
+        // destinatario: busca por nombre dirección, NIF y VAT
+        // telefono: busca por phone y phone_mobile
+        // direccion: busca por address1 y postcode
+        $this->_select = 'a.`id_address`, a.`id_customer`,'
+            . ' a.`firstname` AS `address_firstname`, a.`lastname` AS `address_lastname`,'
+            . ' a.`dni`, a.`vat_number`, a.`phone`, a.`phone_mobile`,'
             . ' a.`address1`, a.`postcode`, a.`city`,'
             . ' c.`firstname` AS `customer_firstname`, c.`lastname` AS `customer_lastname`,'
             . ' c.`email` AS `customer_email`,'
             . ' cl.`name` AS `country_name`,'
+            . ' CONCAT('
+            . ' IFNULL(a.`firstname`, \'\'), \' \','
+            . ' IFNULL(a.`lastname`, \'\'), \' \','
+            . ' IFNULL(a.`dni`, \'\'), \' \','
+            . ' IFNULL(a.`vat_number`, \'\')'
+            . ' ) AS `destinatario`,'
+            . ' CONCAT(IFNULL(a.`phone`, \'\'), \' \', IFNULL(a.`phone_mobile`, \'\')) AS `telefono`,'
+            . ' CONCAT(IFNULL(a.`address1`, \'\'), \' \', IFNULL(a.`postcode`, \'\')) AS `direccion`,'
             . ' CONCAT('
             . ' IFNULL(c.`firstname`, \'\'), \' \','
             . ' IFNULL(c.`lastname`, \'\'), \' \','
@@ -84,26 +96,20 @@ class AdminSjbDireccionesController extends ModuleAdminController
                 'callback' => 'displayCustomerInfo',
                 'havingFilter' => true,
             ],
-            'alias' => [
-                'title' => $this->l('Alias'),
-                'filter_key' => 'a!alias',
+            'destinatario' => [
+                'title' => $this->l('Destinatario'),
+                'callback' => 'displayDestinatarioInfo',
+                'havingFilter' => true,
             ],
-            'dni' => [
-                'title' => $this->l('NIF/CIF'),
-                'filter_key' => 'a!dni',
+            'telefono' => [
+                'title' => $this->l('Teléfono'),
+                'callback' => 'displayTelefonoInfo',
+                'havingFilter' => true,
             ],
-            'vat_number' => [
-                'title' => $this->l('VAT'),
-                'filter_key' => 'a!vat_number',
-            ],
-            'address1' => [
+            'direccion' => [
                 'title' => $this->l('Dirección'),
-                'filter_key' => 'a!address1',
-            ],
-            'postcode' => [
-                'title' => $this->l('CP'),
-                'class' => 'fixed-width-sm',
-                'filter_key' => 'a!postcode',
+                'callback' => 'displayDireccionInfo',
+                'havingFilter' => true,
             ],
             'city' => [
                 'title' => $this->l('Ciudad'),
@@ -183,6 +189,80 @@ class AdminSjbDireccionesController extends ModuleAdminController
             $html .= '<br><small>' . htmlspecialchars($email, ENT_QUOTES, 'UTF-8') . '</small>';
         }
         $html .= '<br><span class="badge badge-info">idCliente: ' . $id . '</span>';
+
+        return $html;
+    }
+
+    /**
+     * Columna Destinatario: nombre dirección, NIF y VAT.
+     *
+     * @param mixed $value
+     * @param array $tr
+     * @return string
+     */
+    public function displayDestinatarioInfo($value, $tr)
+    {
+        $nombre = trim(
+            (isset($tr['address_firstname']) ? $tr['address_firstname'] : '') . ' '
+            . (isset($tr['address_lastname']) ? $tr['address_lastname'] : '')
+        );
+        $dni = isset($tr['dni']) ? trim($tr['dni']) : '';
+        $vat = isset($tr['vat_number']) ? trim($tr['vat_number']) : '';
+
+        $html = '<strong>' . htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') . '</strong>';
+        if ($dni !== '') {
+            $html .= '<br><span class="badge badge-success" style="display:inline-block;margin-top:3px;">NIF: '
+                . htmlspecialchars($dni, ENT_QUOTES, 'UTF-8') . '</span>';
+        }
+        if ($vat !== '') {
+            $html .= '<br><span class="badge badge-primary" style="display:inline-block;margin-top:3px;">VAT: '
+                . htmlspecialchars($vat, ENT_QUOTES, 'UTF-8') . '</span>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * Columna Teléfono: fijo y móvil de la dirección.
+     *
+     * @param mixed $value
+     * @param array $tr
+     * @return string
+     */
+    public function displayTelefonoInfo($value, $tr)
+    {
+        $phone = isset($tr['phone']) ? trim($tr['phone']) : '';
+        $mobile = isset($tr['phone_mobile']) ? trim($tr['phone_mobile']) : '';
+        $lineas = [];
+
+        if ($phone !== '') {
+            $lineas[] = htmlspecialchars($phone, ENT_QUOTES, 'UTF-8');
+        }
+        if ($mobile !== '') {
+            $lineas[] = htmlspecialchars($mobile, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $lineas ? implode('<br>', $lineas) : '';
+    }
+
+    /**
+     * Columna Dirección: calle y código postal.
+     *
+     * @param mixed $value
+     * @param array $tr
+     * @return string
+     */
+    public function displayDireccionInfo($value, $tr)
+    {
+        $calle = isset($tr['address1']) ? trim($tr['address1']) : '';
+        $cp = isset($tr['postcode']) ? trim($tr['postcode']) : '';
+
+        $html = htmlspecialchars($calle, ENT_QUOTES, 'UTF-8');
+        if ($cp !== '') {
+            $html .= ($html !== '' ? '<br>' : '')
+                . '<span class="badge badge-primary">CP: '
+                . htmlspecialchars($cp, ENT_QUOTES, 'UTF-8') . '</span>';
+        }
 
         return $html;
     }
