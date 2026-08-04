@@ -43,11 +43,21 @@ class AdminSjbDireccionesController extends ModuleAdminController
 
         $idLang = (int) $this->context->language->id;
 
-        $this->_select = 'a.`id_address`, a.`id_customer`, a.`alias`, a.`firstname`, a.`lastname`,'
+        // customer_filter: busca por nombre cliente, nombre dirección, email e id_customer
+        $this->_select = 'a.`id_address`, a.`id_customer`, a.`alias`,'
+            . ' a.`dni`, a.`vat_number`,'
             . ' a.`address1`, a.`postcode`, a.`city`,'
             . ' c.`firstname` AS `customer_firstname`, c.`lastname` AS `customer_lastname`,'
             . ' c.`email` AS `customer_email`,'
-            . ' cl.`name` AS `country_name`';
+            . ' cl.`name` AS `country_name`,'
+            . ' CONCAT('
+            . ' IFNULL(c.`firstname`, \'\'), \' \','
+            . ' IFNULL(c.`lastname`, \'\'), \' \','
+            . ' IFNULL(a.`firstname`, \'\'), \' \','
+            . ' IFNULL(a.`lastname`, \'\'), \' \','
+            . ' IFNULL(c.`email`, \'\'), \' \','
+            . ' a.`id_customer`'
+            . ' ) AS `customer_filter`';
 
         $this->_join = ' LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON (c.`id_customer` = a.`id_customer`)'
             . ' LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl'
@@ -69,22 +79,22 @@ class AdminSjbDireccionesController extends ModuleAdminController
                 'align' => 'text-center',
                 'class' => 'fixed-width-xs',
             ],
-            'id_customer' => [
+            'customer_filter' => [
                 'title' => $this->l('Cliente'),
                 'callback' => 'displayCustomerInfo',
-                'filter_key' => 'a!id_customer',
+                'havingFilter' => true,
             ],
             'alias' => [
                 'title' => $this->l('Alias'),
                 'filter_key' => 'a!alias',
             ],
-            'firstname' => [
-                'title' => $this->l('Nombre'),
-                'filter_key' => 'a!firstname',
+            'dni' => [
+                'title' => $this->l('NIF/CIF'),
+                'filter_key' => 'a!dni',
             ],
-            'lastname' => [
-                'title' => $this->l('Apellidos'),
-                'filter_key' => 'a!lastname',
+            'vat_number' => [
+                'title' => $this->l('VAT'),
+                'filter_key' => 'a!vat_number',
             ],
             'address1' => [
                 'title' => $this->l('Dirección'),
@@ -153,6 +163,7 @@ class AdminSjbDireccionesController extends ModuleAdminController
 
     /**
      * Columna Cliente: nombre, email y badge con ID.
+     * $value es el alias customer_filter (CONCAT); el ID va en $tr.
      *
      * @param mixed $value
      * @param array $tr
@@ -160,7 +171,7 @@ class AdminSjbDireccionesController extends ModuleAdminController
      */
     public function displayCustomerInfo($value, $tr)
     {
-        $id = (int) $value;
+        $id = isset($tr['id_customer']) ? (int) $tr['id_customer'] : 0;
         $nombre = trim(
             (isset($tr['customer_firstname']) ? $tr['customer_firstname'] : '') . ' '
             . (isset($tr['customer_lastname']) ? $tr['customer_lastname'] : '')
