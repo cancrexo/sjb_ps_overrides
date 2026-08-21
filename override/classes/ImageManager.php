@@ -24,6 +24,40 @@ class ImageManager extends ImageManagerCore
     const SJB_CROP_DISTORT = 3; // Redimensionar completamente sin proporcionalidade!! --> distorsiona
     const SJB_CROP_JCROP   = 4; // Recorte jCrop    debes recibir as 4 coordenadas (X1,Y1), (X2,Y2)
 
+    // Índices de posición (grelha 3x3): 1 top-center, 4 center, 7 bottom-center
+    const SJB_POS_TOPCENTER    = 1;
+    const SJB_POS_CENTER       = 4;
+    const SJB_POS_BOTTOMCENTER = 7;
+
+    /**
+     * Posición de recorte configurada no módulo (topcenter|center|bottomcenter).
+     * Devolve o índice da grelha 3x3 usado en sjb_new_resize.
+     *
+     * @return int
+     */
+    public static function getConfiguredCropPosition()
+    {
+        $pos = 'center';
+        if (Module::isEnabled('sjboverrides')) {
+            /** @var sjboverrides|false $mod */
+            $mod = Module::getInstanceByName('sjboverrides');
+            if ($mod) {
+                $cfg = $mod->getSingleData('general', 'image_crop_position');
+                if ($cfg) {
+                    $pos = (string) $cfg;
+                }
+            }
+        }
+
+        $map = [
+            'topcenter'    => self::SJB_POS_TOPCENTER,
+            'center'       => self::SJB_POS_CENTER,
+            'bottomcenter' => self::SJB_POS_BOTTOMCENTER,
+        ];
+
+        return $map[$pos] ?? self::SJB_POS_CENTER;
+    }
+
     /**
      * Resize, cut and optimize image
      *
@@ -39,9 +73,12 @@ class ImageManager extends ImageManagerCore
     public static function resize($src_file, $dst_file, $dst_width = null, $dst_height = null, $file_type = 'jpg', $force_type = false,
         &$error = 0, &$tgt_width = null, &$tgt_height = null, $quality = 5, &$src_width = null, &$src_height = null) {
 
-        if (! Module::isEnabled('sjboverrides') || ! ($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))
-            || ! ($override_enabled = (bool) $SJBOVERRIDES->getSingleData('general', 'hookimagemanager'))
-        ) {
+        if (! Module::isEnabled('sjboverrides')) {
+            return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
+        }
+        /** @var sjboverrides|false $SJBOVERRIDES */
+        $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
+        if (! $SJBOVERRIDES || ! (bool) $SJBOVERRIDES->getSingleData('general', 'hookimagemanager')) {
             return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
         }
 
@@ -88,6 +125,13 @@ class ImageManager extends ImageManagerCore
         $width_diff  = $dst_width / $src_width;
         $height_diff = $dst_height / $src_height;
 
+        // Inicialización para ambos caminos (zoomCrop / fit)
+        $src_x = $src_y = 0;
+        $src_w = $src_width;
+        $src_h = $src_height;
+        $next_width  = $dst_width;
+        $next_height = $dst_height;
+
         if ($zoomCrop == true) {
 
             if ($dst_width > 0 && $dst_height < 1) {
@@ -95,10 +139,6 @@ class ImageManager extends ImageManagerCore
             } else if ($dst_height > 0 && $dst_width < 1) {
                 $dst_width = floor($src_width * ($dst_height / $src_height));
             }
-
-            $src_x = $src_y = 0;
-            $src_w = $src_width;
-            $src_h = $src_height;
 
             $cmp_x = $src_width / $dst_width;
             $cmp_y = $src_height / $dst_height;
@@ -111,7 +151,15 @@ class ImageManager extends ImageManagerCore
             } else if ($cmp_y > $cmp_x) {
 
                 $src_h = round(($src_height / $cmp_y * $cmp_x));
-                $src_y = round(($src_height - ($src_height / $cmp_y * $cmp_x)) / 2);
+                // Posición vertical según config (top / center / bottom)
+                $cropPos = self::getConfiguredCropPosition();
+                if ($cropPos === self::SJB_POS_TOPCENTER) {
+                    $src_y = 0;
+                } elseif ($cropPos === self::SJB_POS_BOTTOMCENTER) {
+                    $src_y = (int) round($src_height - $src_h);
+                } else {
+                    $src_y = (int) round(($src_height - ($src_height / $cmp_y * $cmp_x)) / 2);
+                }
 
             }
 
@@ -155,9 +203,9 @@ class ImageManager extends ImageManagerCore
     /**
      * Create an image with GD extension from a given type
      *
-     * @param string $type
+     * @param int $type
      * @param string $filename
-     * @return resource
+     * @return \GdImage|resource|false
      */
     public static function create($type, $filename)
     {
@@ -248,12 +296,12 @@ class ImageManager extends ImageManagerCore
         if (strpos($dst_file, '_sjba') !== false ) {
             // REDIMENSIONAR ata que entre no "marco" (poden quedar ocos)
             $TIPO_REDIMENSION = self::SJB_CROP_FIT;
-            $POS_RECORTE      = 1; // Top-center (0,1,2,3,4,5,6,7,8)
+            $POS_RECORTE      = self::getConfiguredCropPosition();
         }
         else {
             // REDIMENSIONAR ata o  LIMITE E CORTAR O QUE SOBRE
             $TIPO_REDIMENSION = self::SJB_CROP_AXUSTAR;
-            $POS_RECORTE      = 1; // Top-center
+            $POS_RECORTE      = self::getConfiguredCropPosition();
         }
 
 
@@ -319,7 +367,7 @@ class ImageManager extends ImageManagerCore
                 $posX = [
                     0 => 0, 1 => ($anchoR - $dst_width) / 2, 2 => $anchoR - $dst_width,
                     3 => 0, 4 => ($anchoR - $dst_width) / 2, 5 => $anchoR - $dst_width,
-                    6 => 0, 7 => ($anchoR - $dst_width / 2), 8 => $anchoR - $dst_width,
+                    6 => 0, 7 => ($anchoR - $dst_width) / 2, 8 => $anchoR - $dst_width,
                 ];
 
                 $posY = [
@@ -385,7 +433,7 @@ class ImageManager extends ImageManagerCore
 
             break;
 
-            case SJB_CROP_JCROP: // Recorte jCrop  - TODO.
+            case self::SJB_CROP_JCROP: // Recorte jCrop  - TODO.
                 // Colles unha imaxe, sacas un recorte e redimensionas ese recorte coas dimesnions desexadas
                 $DEST_IMAGE = static::myCrearCanvas($dst_width, $dst_height, $file_type);
                 // info da area seleccionada
@@ -410,6 +458,12 @@ class ImageManager extends ImageManagerCore
     }
 
     // Crea imaxe valdeira, e si soporta transparencia, tense en conta
+    /**
+     * @param int $canvas_width
+     * @param int $canvas_height
+     * @param string|int $type
+     * @return \GdImage|resource
+     */
     public static function myCrearCanvas($canvas_width, $canvas_height, $type)
     {
         $novaimaxe = imagecreatetruecolor($canvas_width, $canvas_height);

@@ -38,7 +38,9 @@ class sjboverrides extends Module implements WidgetInterface
     // Config inicial nome de clave en bbdd =nome de variable para GET/POST =>[valor por defecto, tipo valor(0,1,2,), ...]
     // todo
     protected $default_config = [
-        'hook_image_manager'            =>[0], // Este non se usa de momento
+        'hook_image_manager'            => [0],
+        // Posición de recorte: topcenter | center | bottomcenter
+        'image_crop_position'           => ['center'],
 
         // TODO ARREGLAR ZONA ADMINISTRACION
         'hook_ocultar_manufacturer'           => [0], // si o hook esta activado
@@ -61,7 +63,11 @@ class sjboverrides extends Module implements WidgetInterface
     public
         $config,
         $_loadedconfig,
-        $error, $valid, $path;
+        $error, $valid, $path,
+        /** @var array listado auxiliar formularios legacy */
+        $list_imagesizes = [],
+        /** @var array listado auxiliar formularios legacy */
+        $list_order_state = [];
 
     protected $_html = '';
     // distonto, uso array d claves que se leen con  Configuration::get(PREFIX . $clave)
@@ -90,7 +96,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.4.0';
+        $this->version                = '2.4.1';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];

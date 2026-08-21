@@ -2,6 +2,16 @@
 
 use \Sjboverrides\SJB_PSTools;
 
+/**
+ * Configuración BO de sjboverrides.
+ *
+ * @property sjboverrides $module
+ * @property string       $title
+ * @property string       $displayName
+ * @property string       $name
+ * @property string       $ucasename
+ * @property string       $path  vía $this->module->path
+ */
  class AdminSjboverridesConfigController extends ModuleAdminController{
 
     private $_html = '';
@@ -72,6 +82,11 @@ use \Sjboverrides\SJB_PSTools;
 
             // General (con prefijo "general_" en todas as claves)
             $this->config = $this->module->getData('general'); // Leense co prefixo "general_" incluid nas claves pq no POST veñen con el!!OSTIAS
+
+            // Asegurar clave de posición de recorte (instalacións previas a 2.4.1)
+            if (!isset($this->config['general_imagecropposition'])) {
+                $this->config['general_imagecropposition'] = 'center';
+            }
 
             foreach($this->config as $key=> $previo) {
                 $valor =\Tools::getValue($key, $previo); // getValue($key, $default_value)
@@ -144,6 +159,10 @@ use \Sjboverrides\SJB_PSTools;
         if(!$this->config){
             $this->config = $this->module->setDefaultValues();
         }
+        // Clave nova: se falta na config gardada, default center
+        if (!isset($this->config['general_imagecropposition'])) {
+            $this->config['general_imagecropposition'] = 'center';
+        }
         // Fijos, non bbdd
         $this->config['module_override_reinstall'] = false;
         $this->config['module_hooks_reinstall']     = false;
@@ -179,6 +198,7 @@ use \Sjboverrides\SJB_PSTools;
 
     // override imagemanager (provisional):
     public function getFormOverrideImagenamager(){
+        $imagemanagerOn = !empty($this->config['general_hookimagemanager']);
         $form = [
 
             'legend' => [
@@ -206,7 +226,23 @@ use \Sjboverrides\SJB_PSTools;
                         ],
                     ],
                 ],
-             
+                [
+                    'form_group_class' => 'grupo-image-crop-position ' . ($imagemanagerOn ? '' : 'hidden'),
+                    'type'             => 'select',
+                    'label'            => $this->l('Posición de recorte'),
+                    'desc'             => $this->l('Se aplica a todas las miniaturas cuando Image Manager está activo (zoomCrop y rama _sjb).'),
+                    'name'             => 'general_imagecropposition',
+                    'class'            => 'sjboverrides',
+                    'options'          => [
+                        'id'    => 'id',
+                        'name'  => 'name',
+                        'query' => [
+                            ['id' => 'topcenter', 'name' => $this->l('Top center')],
+                            ['id' => 'center', 'name' => $this->l('Center')],
+                            ['id' => 'bottomcenter', 'name' => $this->l('Bottom center')],
+                        ],
+                    ],
+                ],
             ],
 
 

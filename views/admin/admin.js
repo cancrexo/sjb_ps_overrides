@@ -64,6 +64,24 @@ document.addEventListener('DOMContentLoaded', ()=> {
     if (Number(manufacturerHook))bloque_inputmanufacturerhiddenflag.classList.remove('hidden');
 
 
+    // IMAGE MANAGER — posición de recorte
+    const switch_imagemanager = document.querySelectorAll('input[name="general_hookimagemanager"]');
+    const bloque_crop_position = document.querySelector('.form-group.grupo-image-crop-position');
+
+    switch_imagemanager.forEach((radioButton) => {
+        radioButton.addEventListener('change', (event) => {
+            let valor = Number(event.target.value);
+            if (!bloque_crop_position) {
+                return;
+            }
+            valor ? bloque_crop_position.classList.remove('hidden') : bloque_crop_position.classList.add('hidden');
+        });
+    });
+
+    const imagemanagerHook = document.querySelector('input[name="general_hookimagemanager"]:checked')?.value;
+    if (Number(imagemanagerHook) && bloque_crop_position) {
+        bloque_crop_position.classList.remove('hidden');
+    }
 
 
 });

@@ -89,7 +89,13 @@ class AdminSjbClientesController extends ModuleAdminController
                 'title' => $this->l('Direcciones'),
                 'align' => 'text-center',
                 'class' => 'fixed-width-sm',
-                'search' => false,
+                'type' => 'select',
+                'list' => [
+                    '1' => $this->l('Sí'),
+                    '0' => $this->l('No'),
+                ],
+                'filter_key' => 'nb_addresses',
+                'havingFilter' => true,
                 'callback' => 'displayNbAddressesBadge',
             ],
         ];
@@ -101,6 +107,30 @@ class AdminSjbClientesController extends ModuleAdminController
                 'confirm' => $this->l('¿Eliminar los clientes seleccionados?'),
             ],
         ];
+    }
+
+    /**
+     * El HelperList filtra select con «= valor».
+     * Aquí Sí = al menos una dirección (> 0) y No = ninguna (= 0).
+     */
+    public function processFilter()
+    {
+        parent::processFilter();
+
+        if (empty($this->_filterHaving)) {
+            return;
+        }
+
+        $this->_filterHaving = preg_replace(
+            '/AND\s+`?nb_addresses`?\s*=\s*[\'"]?1[\'"]?\s*/i',
+            ' AND `nb_addresses` > 0 ',
+            $this->_filterHaving
+        );
+        $this->_filterHaving = preg_replace(
+            '/AND\s+`?nb_addresses`?\s*=\s*[\'"]?0[\'"]?\s*/i',
+            ' AND `nb_addresses` = 0 ',
+            $this->_filterHaving
+        );
     }
 
     public function renderList()
