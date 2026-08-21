@@ -41,7 +41,7 @@ class Manufacturer extends ManufacturerCore
 
         // en realidade haberia que modificar o modelo pero vanlle dar moito
         if (! Module::isEnabled('sjboverrides') || ! ($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))) {
-            return getManufacturers($getNbProducts, $idLang, $active, $p, $n, $allGroup, $group_by, $withProduct);
+            return parent::getManufacturers($getNbProducts, $idLang, $active, $p, $n, $allGroup, $group_by, $withProduct);
         }
         $context = Context::getContext();
         $id_employee = isset($context->employee) ? (int)$context->employee->id : 0;
