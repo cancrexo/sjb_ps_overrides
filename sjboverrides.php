@@ -96,7 +96,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.4.1';
+        $this->version                = '2.4.2';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -615,6 +615,19 @@ class sjboverrides extends Module implements WidgetInterface
         // Autocomplete cliente no alta de dirección (só se o sistema SJB clientes está ON)
         if ((bool) $this->getSingleData('general', 'hook_clientes_active')) {
             $this->loadAddressCustomerAutocompleteAssets();
+        }
+
+        // Acciones agrupadas arriba + invertir selección (SJB clientes / direccións)
+        $ctrlName = isset($this->context->controller->controller_name)
+            ? (string) $this->context->controller->controller_name
+            : '';
+        if (in_array($ctrlName, ['AdminSjbClientes', 'AdminSjbDirecciones'], true)) {
+            Media::addJsDef([
+                'sjbListInvertSelection' => [
+                    'label' => $this->l('Invertir selección'),
+                ],
+            ]);
+            $this->context->controller->addJS($this->_path . 'views/admin/list-invert-selection.js');
         }
     }
 
