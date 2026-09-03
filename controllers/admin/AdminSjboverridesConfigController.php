@@ -105,6 +105,8 @@ use \Sjboverrides\SJB_PSTools;
 
             // Grabar
             $this->module->saveData('general', $formvalues);
+            // Este mesmo request (p.e. vaciar caché) debe respectar o switch recén gardado
+            sjboverrides::$debugEnabled = (bool) $this->module->getSingleData('general', 'debug_enabled');
 
             // Sincronizar menú SJB clientes / direccións nativas
             $this->module->syncClientesMenu(
@@ -545,9 +547,11 @@ use \Sjboverrides\SJB_PSTools;
                     'type'   => 'switch',
                     'label'  => $this->l('Debug Mode'),
                     'desc'   => sprintf(
-                        '%1$s <em style="color:#c00">%2$s</em>',
-                        $this->l('If active, module  will log messages to PS registry'),
-                        'PS registry'),
+                        '%1$s <a href="%2$s" target="_blank" rel="noopener noreferrer"><em style="color:#c00">%3$s</em></a>.',
+                        $this->l('If active, module will log messages to'),
+                        htmlspecialchars($this->context->link->getAdminLink('AdminLogs'), ENT_QUOTES, 'UTF-8'),
+                        'PS registry'
+                    ),
                     'name'   => 'general_debugenabled',
                     'values' => [
                         [
@@ -630,10 +634,13 @@ use \Sjboverrides\SJB_PSTools;
 
 
     public function getDebugData(){
+        // Só se Debug Mode está ON (switch general_debugenabled)
+        if (empty($this->config['general_debugenabled'])) {
+            return '';
+        }
 
-        return  $this->context->smarty->fetch(
+        return $this->context->smarty->fetch(
             $this->module->getLocalPath() . 'views/templates/admin/debug.tpl');
-
     }
 
     public function vaciaCache()

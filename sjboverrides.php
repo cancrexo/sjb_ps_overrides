@@ -112,7 +112,8 @@ class sjboverrides extends Module implements WidgetInterface
         $this->error          = false;
         $this->valid          = false;
         $this->path           = $this->_path; // Protected polo visto, logo uso unha public para os templates!
-        // static::$debugEnabled = (bool) \Configuration::get(self::PREFIX . 'DEBUG_ENABLED') ?? true;
+        // Switch Debug Mode (JSON SJBOVERRIDE_general_config), non a clave solta PREFIX.DEBUG_ENABLED
+        static::$debugEnabled = (bool) $this->getSingleData('general', 'debug_enabled');
     }
 
     public function install() {
