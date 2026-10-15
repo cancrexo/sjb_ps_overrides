@@ -14,15 +14,6 @@
  *  @copyright 2024 SJB Dixital
  *  @license http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
-use PrestaShop\PrestaShop\Adapter\Image\ImageRetriever;
-use PrestaShop\PrestaShop\Adapter\Presenter\AbstractLazyArray;
-use PrestaShop\PrestaShop\Adapter\Presenter\Product\ProductLazyArray;
-use PrestaShop\PrestaShop\Adapter\Presenter\Product\ProductListingPresenter;
-use PrestaShop\PrestaShop\Adapter\Product\PriceFormatter;
-use PrestaShop\PrestaShop\Adapter\Product\ProductColorsRetriever;
-use PrestaShop\PrestaShop\Core\Addon\Module\ModuleManagerBuilder;
-use PrestaShop\PrestaShop\Core\Product\ProductExtraContentFinder;
-use PrestaShop\PrestaShop\Core\Product\ProductInterface;
 
 class ProductController extends ProductControllerCore
 {
@@ -33,16 +24,17 @@ class ProductController extends ProductControllerCore
      */
     public function initContent(){
 
-        // if (!Module::isEnabled('sjboverrides') || !($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))
-        // ||  !($override_enabled = (bool) Configuration::get($SJBOVERRIDES::PREFIX.'ORDERHISTORY'))
-        // ) {
-        //     return  parent::initContent();
-        // }
-        
-        $el_llonatan =  $this->checkFeaturesProducto();
+        $bloqueado = false;
+        if (Module::isEnabled('sjboverrides')) {
+            /** @var sjboverrides|false $SJBOVERRIDES */
+            $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
+            $bloqueado = $SJBOVERRIDES && $SJBOVERRIDES->hayOverrideAjeno('producto');
+        }
 
-        // Asigna el array de IDs a smarty
-        $this->context->smarty->assign(['sjboverride_sjbquestion' => $el_llonatan]);
+        if (!$bloqueado) {
+            $el_llonatan = $this->checkFeaturesProducto();
+            $this->context->smarty->assign(['sjboverride_sjbquestion' => $el_llonatan]);
+        }
 
         parent::initContent();
 
@@ -51,7 +43,7 @@ class ProductController extends ProductControllerCore
 
     private function  checkFeaturesProducto(){
 
-        $id_feature_value = Configuration::get('SJBOVERRIDE_QUESTION_IDFEATUREVALUE');
+        $id_feature_value = \Configuration::get('SJBOVERRIDE_QUESTION_IDFEATUREVALUE');
 
         if(!$id_feature_value) return false;
 
@@ -60,7 +52,7 @@ class ProductController extends ProductControllerCore
             $this->product->id,
             $id_feature_value
         ); // var_dump($sql);
-        $result = Db::getInstance()->getValue($sql);
+        $result = \Db::getInstance()->getValue($sql);
         if ($result)return $result;
         return false;
     }

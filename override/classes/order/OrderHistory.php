@@ -29,7 +29,12 @@ class OrderHistory extends OrderHistoryCore
     {
         // \PrestaShopLogger::addLog(__method__);
 
-        if (!Module::isEnabled('sjboverrides') || !($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))) {
+        if (!Module::isEnabled('sjboverrides')) {
+            return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);
+        }
+        /** @var sjboverrides|false $SJBOVERRIDES */
+        $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
+        if (!$SJBOVERRIDES || $SJBOVERRIDES->hayOverrideAjeno('pedidos')) {
             return parent::changeIdOrderState($new_order_state, $id_order, $use_existing_payment);
         }
 
@@ -41,7 +46,7 @@ class OrderHistory extends OrderHistoryCore
 
         $SJBOVERRIDES::debug('En el override...' ); // prestahop logger que podes desactivar no propio modulo
 
-        $data = $SJBOVERRIDES::getData('general',);
+        $data = $SJBOVERRIDES->getData('general');
 
         //$SJBOVERRIDES::debug(var_export($data, true));
 
@@ -84,8 +89,9 @@ class OrderHistory extends OrderHistoryCore
             $context = Context::getContext();
 
             // An email is sent the first time a virtual item is validated
+            /** @var array|false $virtual_products El docblock del núcleo dice int, pero executeS devuelve filas */
             $virtual_products = $order->getVirtualProducts();
-            if ($virtual_products && (!$old_os || !$old_os->logable) && $new_os && $new_os->logable) {
+            if (is_array($virtual_products) && (!$old_os || !$old_os->logable) && $new_os && $new_os->logable) {
                 $assign = array();
                 foreach ($virtual_products as $key => $virtual_product) {
                     $id_product_download = ProductDownload::getIdFromIdProduct($virtual_product['product_id']);

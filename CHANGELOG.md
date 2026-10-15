@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.3
+- Override de FrontController: la página de mantenimiento puede responder 200 en lugar de 503, activable desde el back-office.
+- El interruptor queda bloqueado si la tienda ya tiene otro override de FrontController.
+
 ## 2.4.2
 - SJB clientes: filtro Sí/No en columna Direcciones (con / sin al menos una).
 - SJB clientes y direcciones: invertir selección + menú de acciones agrupadas también arriba.

@@ -60,6 +60,9 @@ class sjboverrides extends Module implements WidgetInterface
         // Sistema SJB de clientes / direccións (listados propios)
         'hook_clientes_active'          => [0],
 
+        // Página de mantenimiento: 200 en lugar de 503
+        'hook_maintenance_200'          => [0],
+
         'url_rewrite'                   => [0], // si o hook esta activado
         'debug_enabled'                 => [1],
         'remove_data'                   => [1],
@@ -101,7 +104,7 @@ class sjboverrides extends Module implements WidgetInterface
     public function __construct() {
         $this->name                   = 'sjboverrides';
         $this->tab                    = 'front_office_features';
-        $this->version                = '2.4.2';
+        $this->version                = '2.4.3';
         $this->need_instance          = 0;
         $this->author                 = 'Daniel Prol «Cancrexo» ';
         $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
@@ -208,6 +211,72 @@ class sjboverrides extends Module implements WidgetInterface
         $data = $this->getData($arr, false); // sin rpefixo general_ p.e.
         $key = static::myreplace($key);  // eliminamos guiones y underscores con preg_replace
         return $data[$key] ?? null;
+    }
+
+    /**
+     * El override instalado en /override/ tiene métodos que no son de este módulo.
+     * El archivo dentro de modules/ no cuenta: PrestaShop solo carga el de /override/.
+     *
+     * @param string $clave front|pedidos|producto|manufacturer|imagemanager
+     * @return bool
+     */
+    public function hayOverrideAjeno($clave)
+    {
+        static $resultado = [];
+        if (array_key_exists($clave, $resultado)) {
+            return $resultado[$clave];
+        }
+
+        $mapa = [
+            'front' => [
+                'ruta'    => 'classes/controller/FrontController.php',
+                'metodos' => ['displayMaintenancePage'],
+            ],
+            'pedidos' => [
+                'ruta'    => 'classes/order/OrderHistory.php',
+                'metodos' => ['changeIdOrderState'],
+            ],
+            'producto' => [
+                'ruta'    => 'controllers/front/ProductController.php',
+                'metodos' => ['initContent', 'checkFeaturesProducto'],
+            ],
+            'manufacturer' => [
+                'ruta'    => 'classes/Manufacturer.php',
+                'metodos' => ['getManufacturers'],
+            ],
+            'imagemanager' => [
+                'ruta'    => 'classes/ImageManager.php',
+                'metodos' => [
+                    'resize',
+                    'create',
+                    'isRealImage',
+                    'usarImagemanagerPropio',
+                    'getConfiguredCropPosition',
+                    'sjb_new_resize',
+                    'myCrearCanvas',
+                    'alphaBefore',
+                    'alphaAfter',
+                ],
+            ],
+        ];
+
+        if (!isset($mapa[$clave])) {
+            return $resultado[$clave] = false;
+        }
+
+        $ruta = _PS_OVERRIDE_DIR_ . $mapa[$clave]['ruta'];
+        if (!is_file($ruta)) {
+            return $resultado[$clave] = false;
+        }
+
+        $codigo = file_get_contents($ruta);
+        if ($codigo === false || !preg_match_all('/function\s+([A-Za-z0-9_]+)\s*\(/', $codigo, $coincidencias)) {
+            return $resultado[$clave] = true;
+        }
+
+        $ajenos = array_diff(array_unique($coincidencias[1]), $mapa[$clave]['metodos']);
+
+        return $resultado[$clave] = count($ajenos) > 0;
     }
 
 

@@ -87,6 +87,10 @@ use \Sjboverrides\SJB_PSTools;
             if (!isset($this->config['general_imagecropposition'])) {
                 $this->config['general_imagecropposition'] = 'center';
             }
+            // Mantenimiento HTTP 200 (instalaciones previas a este override)
+            if (!isset($this->config['general_hookmaintenance200'])) {
+                $this->config['general_hookmaintenance200'] = 0;
+            }
 
             foreach($this->config as $key=> $previo) {
                 $valor =\Tools::getValue($key, $previo); // getValue($key, $default_value)
@@ -102,6 +106,20 @@ use \Sjboverrides\SJB_PSTools;
                 }, array_keys($formvalues)),
                 array_values($formvalues)
             );
+
+            // Si ya hay otro override de esa clase, el interruptor no se puede dejar encendido
+            $apagarSiAjeno = [
+                'front'        => 'hookmaintenance200',
+                'pedidos'      => 'hookorderhistoryactive',
+                'producto'     => 'hookpreguntarproducto',
+                'manufacturer' => 'hookocultarmanufacturer',
+                'imagemanager' => 'hookimagemanager',
+            ];
+            foreach ($apagarSiAjeno as $clave => $campo) {
+                if ($this->module->hayOverrideAjeno($clave)) {
+                    $formvalues[$campo] = 0;
+                }
+            }
 
             // Grabar
             $this->module->saveData('general', $formvalues);
@@ -165,6 +183,21 @@ use \Sjboverrides\SJB_PSTools;
         if (!isset($this->config['general_imagecropposition'])) {
             $this->config['general_imagecropposition'] = 'center';
         }
+        if (!isset($this->config['general_hookmaintenance200'])) {
+            $this->config['general_hookmaintenance200'] = 0;
+        }
+        $apagarSiAjeno = [
+            'front'        => 'general_hookmaintenance200',
+            'pedidos'      => 'general_hookorderhistoryactive',
+            'producto'     => 'general_hookpreguntarproducto',
+            'manufacturer' => 'general_hookocultarmanufacturer',
+            'imagemanager' => 'general_hookimagemanager',
+        ];
+        foreach ($apagarSiAjeno as $clave => $campo) {
+            if ($this->module->hayOverrideAjeno($clave)) {
+                $this->config[$campo] = 0;
+            }
+        }
         // Fijos, non bbdd
         $this->config['module_override_reinstall'] = false;
         $this->config['module_hooks_reinstall']     = false;
@@ -187,6 +220,7 @@ use \Sjboverrides\SJB_PSTools;
                 // $this->getFormOverrideRewrite(),
                 $this->getFormOverrideProducto(),
                 $this->getFormOverrideManufacturer(),
+                $this->getFormOverrideMaintenance(),
                 $this->getFormOverrideClientes(),
                 // $this->getFormOverrideReinstalls(),
                 $this->getFormDebug(),
@@ -200,6 +234,7 @@ use \Sjboverrides\SJB_PSTools;
 
     // override imagemanager (provisional):
     public function getFormOverrideImagenamager(){
+        $bloqueado = $this->module->hayOverrideAjeno('imagemanager');
         $imagemanagerOn = !empty($this->config['general_hookimagemanager']);
         $form = [
 
@@ -209,7 +244,8 @@ use \Sjboverrides\SJB_PSTools;
             ],
             'input'  => [
                 [
-                    'type'   => 'switch',
+                    'type'     => 'switch',
+                    'disabled' => $bloqueado,
                     'label'  => $this->l('usar Imagemanager propio'),
                     'desc'   => sprintf('%1$s', $this->l('Usa un override de imagemanager avanzado con soporte para imagenes trasnparentes y recorte preciso')                        
                     ),
@@ -255,15 +291,18 @@ use \Sjboverrides\SJB_PSTools;
                 'class' => 'sjbsubmit btn btn-default pull-right',
             ],
         ];
+        if ($bloqueado) {
+            $form['warning'] = $this->l('Override bloqueado porque ya existe otro.');
+        }
         // var_dump($form);
         return ['form'=>$form];
     }
 
     // override pedidos
     public function getFormOverridePedidos(){
+        $bloqueado = $this->module->hayOverrideAjeno('pedidos');
 
-        return [
-            'form' => [
+        $form = [
 
                 'legend' => [
                     'title' => $this->l('Orders'),
@@ -271,7 +310,8 @@ use \Sjboverrides\SJB_PSTools;
                 ],
                 'input'  => [
                     [
-                        'type'   => 'switch',
+                        'type'     => 'switch',
+                        'disabled' => $bloqueado,
                         'label'  => $this->l('OrderHistory'),
                         'desc'   => sprintf('%1$s <strong>%2$s</strong> %3$s',
                             $this->l('Hook para la gestión de'),
@@ -315,13 +355,18 @@ use \Sjboverrides\SJB_PSTools;
                     'name'  => 'sjbSubmitConfig',
                     'class' => 'sjbsubmit btn btn-default pull-right',
                 ],
-            ],
         ];
+        if ($bloqueado) {
+            $form['warning'] = $this->l('Override bloqueado porque ya existe otro.');
+        }
+
+        return ['form' => $form];
     }
 
 
     // Para ter posibiliadde "PREGUNTAR" por producto
     protected function   getFormOverrideProducto(){
+        $bloqueado = $this->module->hayOverrideAjeno('producto');
 
         $form = [
 
@@ -329,10 +374,10 @@ use \Sjboverrides\SJB_PSTools;
                 'title' => $this->l('Override Producto'),
                 'icon'  => 'icon-cog',
             ],
-            // 'error'  => sprintf('<strong>%1$s</strong> %2$s', 'OJO', $this->l('Parámetros de configuracion y desarrollo')),
             'input'  => [
                 [
-                    'type'   => 'switch',
+                    'type'     => 'switch',
+                    'disabled' => $bloqueado,
                     'label'  => $this->l('Preguntar por producto'),
                     'desc'   => sprintf('%1$s <strong style="color:#c00">%2$s</strong> %3$s',
                         $this->l('Si el'),
@@ -385,11 +430,15 @@ use \Sjboverrides\SJB_PSTools;
                 'class' => 'sjbsubmit btn btn-default pull-right',
             ],
         ];
+        if ($bloqueado) {
+            $form['warning'] = $this->l('Override bloqueado porque ya existe otro.');
+        }
         // var_dump($form);
         return ['form'=>$form];
     }
  // Para ter posibiliadde "PREGUNTAR" por producto
     protected function   getFormOverrideManufacturer(){
+        $bloqueado = $this->module->hayOverrideAjeno('manufacturer');
 
         $form = [
 
@@ -399,7 +448,8 @@ use \Sjboverrides\SJB_PSTools;
             ],
             'input'  => [
                 [
-                    'type'   => 'switch',
+                    'type'     => 'switch',
+                    'disabled' => $bloqueado,
                     'label'  => $this->l('Ocultar marcas con metatitulo dado'),
                     'desc'   => sprintf('%1$s <strong style="color:#c00">%2$s</strong> %3$s <strong>%4$s</strong> %5$s',
                         $this->l('Si la'),
@@ -442,8 +492,57 @@ use \Sjboverrides\SJB_PSTools;
                 'class' => 'sjbsubmit btn btn-default pull-right',
             ],
         ];
+        if ($bloqueado) {
+            $form['warning'] = $this->l('Override bloqueado porque ya existe otro.');
+        }
         // var_dump($form);
         return ['form'=>$form];
+    }
+
+    /**
+     * Mantenimiento: la tienda cerrada responde 200 en lugar de 503.
+     */
+    protected function getFormOverrideMaintenance()
+    {
+        $bloqueado = $this->module->hayOverrideAjeno('front');
+
+        $form = [
+            'legend' => [
+                'title' => $this->l('Mantenimiento'),
+                'icon'  => 'icon-cog',
+            ],
+            'input'  => [
+                [
+                    'type'     => 'switch',
+                    'label'    => $this->l('HTTP 200 en mantenimiento'),
+                    'desc'     => $this->l('La página de mantenimiento responde 200 en lugar de 503, para que los monitores no marquen la tienda como caída.'),
+                    'name'     => 'general_hookmaintenance200',
+                    'disabled' => $bloqueado,
+                    'values'   => [
+                        [
+                            'id'    => 'maintenance_200_on',
+                            'value' => 1,
+                            'label' => $this->l('On'),
+                        ],
+                        [
+                            'id'    => 'maintenance_200_off',
+                            'value' => 0,
+                            'label' => $this->l('Off'),
+                        ],
+                    ],
+                ],
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'name'  => 'sjbSubmitConfig',
+                'class' => 'sjbsubmit btn btn-default pull-right',
+            ],
+        ];
+        if ($bloqueado) {
+            $form['warning'] = $this->l('Override bloqueado porque ya existe otro.');
+        }
+
+        return ['form' => $form];
     }
 
     /**

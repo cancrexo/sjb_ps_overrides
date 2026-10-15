@@ -59,6 +59,24 @@ class ImageManager extends ImageManagerCore
     }
 
     /**
+     * El interruptor y el bloqueo cubren todo el override: recorte y WebP.
+     *
+     * @return bool
+     */
+    private static function usarImagemanagerPropio()
+    {
+        if (!Module::isEnabled('sjboverrides')) {
+            return false;
+        }
+        /** @var sjboverrides|false $SJBOVERRIDES */
+        $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
+
+        return $SJBOVERRIDES
+            && !$SJBOVERRIDES->hayOverrideAjeno('imagemanager')
+            && (bool) $SJBOVERRIDES->getSingleData('general', 'hookimagemanager');
+    }
+
+    /**
      * Resize, cut and optimize image
      *
      *
@@ -73,12 +91,7 @@ class ImageManager extends ImageManagerCore
     public static function resize($src_file, $dst_file, $dst_width = null, $dst_height = null, $file_type = 'jpg', $force_type = false,
         &$error = 0, &$tgt_width = null, &$tgt_height = null, $quality = 5, &$src_width = null, &$src_height = null) {
 
-        if (! Module::isEnabled('sjboverrides')) {
-            return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
-        }
-        /** @var sjboverrides|false $SJBOVERRIDES */
-        $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
-        if (! $SJBOVERRIDES || ! (bool) $SJBOVERRIDES->getSingleData('general', 'hookimagemanager')) {
+        if (!self::usarImagemanagerPropio()) {
             return parent::resize($src_file, $dst_file, $dst_width, $dst_height, $file_type, $force_type, $error, $tgt_width, $tgt_height, $quality, $src_width, $src_height);
         }
 
@@ -209,6 +222,10 @@ class ImageManager extends ImageManagerCore
      */
     public static function create($type, $filename)
     {
+        if (!self::usarImagemanagerPropio()) {
+            return parent::create($type, $filename);
+        }
+
         // Incluimos oporte webp
         switch ($type) {
             case IMAGETYPE_GIF: // int(1)
@@ -236,6 +253,10 @@ class ImageManager extends ImageManagerCore
 
     public static function isRealImage($filename, $file_mime_type = null, $mime_type_list = null)
     {
+        if (!self::usarImagemanagerPropio()) {
+            return parent::isRealImage($filename, $file_mime_type, $mime_type_list);
+        }
+
         // Incluimos oporte webp
         $mime_type = false;
         if (! $mime_type_list) {

@@ -40,7 +40,12 @@ class Manufacturer extends ManufacturerCore
         }
 
         // en realidade haberia que modificar o modelo pero vanlle dar moito
-        if (! Module::isEnabled('sjboverrides') || ! ($SJBOVERRIDES = Module::getInstanceByName('sjboverrides'))) {
+        if (!Module::isEnabled('sjboverrides')) {
+            return parent::getManufacturers($getNbProducts, $idLang, $active, $p, $n, $allGroup, $group_by, $withProduct);
+        }
+        /** @var sjboverrides|false $SJBOVERRIDES */
+        $SJBOVERRIDES = Module::getInstanceByName('sjboverrides');
+        if (!$SJBOVERRIDES || $SJBOVERRIDES->hayOverrideAjeno('manufacturer')) {
             return parent::getManufacturers($getNbProducts, $idLang, $active, $p, $n, $allGroup, $group_by, $withProduct);
         }
         $context = Context::getContext();
